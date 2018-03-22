@@ -1,0 +1,151 @@
+@ SELECT 에서 컬럼 값 산술 연산 하기
+-> 컬럼 값에 대해 산술 연산한 결과를 조회할 수 있음
+
+-- 연봉 (월급 *12)
+SELECT EMP_NAME, SALARY*12 FROM EMPLOYEE;
+
+-- 보너스금액
+SELECT SALARY * BONUS FROM EMPLOYEE;
+
+-- 연봉 확인( 단, 매달 받는 보너스를 포함한 연봉)
+SELECT EMP_NAME, (SALARY  + (SALARY * BONUS))*12 FROM EMPLOYEE;
+
+@ 컬럼 별칭(AS)
+-> 출력되는 결과물 컬럼에 별칭을 부여할 수 있음
+-> AS 를 사용하여 출력되는 Result Set에 컬럼명을 변경 할 수 있음.
+SELECT EMP_NAME AS 이름, SALARY*12 AS "연봉(원)" FROM EMPLOYEE;
+
+@ 리터럴
+-> 임의로 지정한 문자열을  SELECT절에 사용하면, 테이블에 존재하는 데이터 처럼 사용할 수 있음.
+SELECT EMP_NAME AS 이름, SALARY*12 AS "연봉(원)" , '원' AS "단위" FROM EMPLOYEE;
+
+
+@NVL(NULL값일때, [NULL일때 출력해줄 값])
+
+@ FLOOR (소수점 자리 버림)
+
+@ SYSDATE (현재시간)
+
+@ DISTINCT
+-> 컬럼에 포함된 중복 값을 한번씩만 표시하고자 할때 사용 됨.
+
+@ 비교 연산자
+-> 표현식 사이의 관계를 비교하기 위해 사용하고, 비교 결과는 논리 결과 중에 하나 (, TRUE/FALSE/NULL)가 됨
+-> 단, 비교하는 두 컬럼 값/ 표현식은 서로 동일한 데이터 타입이어야 함
+
+연산자				설명
+=				같다
+>,<				크다, 작다
+>=,<=				크거나 같다, 작거나 같다
+<>,!=,.^=			같지 않다
+BEYWEEN AND			특정 범위에 포함되는 지 비교
+LIKE/NOT LIKE			문자 패턴 비교
+IS NULL / IS NOT NULL		NULL 여부 비교
+IN/ NOT IN			비교 값 목록에 포함. 미포함 되는지 여부 비교
+
+* <> 작거나 크다라는 의미. 즉, 같지 않다라는 뜻.
+
+@ 연결 연산자
+-> 연결 연산자는 '||' 를 사용하여 여러 컬럼을 하나의 컬럼인 것처럼 연결하거나
+컬럼과 리터럴을 연결할 수 있음
+
+SELECT EMP_NAME, SALARY||'원' AS "월급" FROM EMPLOYEE;
+
+
+@ 비교 연산자 - BETWEEN AND
+->  비교하려는 값이 지정한 범위( 상한 값과 하한 값의 경계도 포함) 에
+포함되면 TRUE를 리턴하는 연산자
+
+@ 비교연산자 - LIKE
+-> 비교하려는 값이 지정한특정 패턴을 만족시키면 TRUE를 리턴하는 연산자로
+'%' 와'_'를 와일드 카드로 사용할 수 있음
+	* 와일드 카드 : 대체해서 사용할 수 잇는것
+	* _ : 한문자, % : 모든것.
+EX)
+SELECT * FROM EMPLOYEE
+WHERE PHONE LIKE '%3%';
+
+
+작은 따옴표 ' ' : 문자열을 감사주는 용도.
+큰 따옴표 " " : 컬럼명을 감싸주는 용도.
+ex)
+SELECT SALARY AS "급여" FROM EMPLOYEE
+WHERE EMP_NAME = '전지연';
+
+
+@ 비교 연산자 - NOT LIKE
+-> LIKE 와 사용법은 같으나 일치하지 않는것을 의미함.
+-> 비교하려는 값과 일치하지 않는것을 검색
+
+ex)
+SELECT * FROM EMPLOYEE
+WHERE EMP_NAME NOT LIKE '이%';
+
+@ 비교 연산자 - IS NULL/ IS NOT NULL
+-> NULL 여부를 비교하는 연산자.
+
+ex)
+SELECT EMP_NAME FROM EMPLOYEE
+WHERE MANAGER_ID IS NULL AND DEPT_CODE IS NULL;
+
+SELECT EMP_NAME FROM EMPLOYEE
+WHERE DEPT_CODE IS NULL AND BONUS IS NOT NULL;
+
+
+@ 비교연산자 - IN
+-> 비교하려는 값 목록에 일치하는 값이 있으면 TRUE를 반환하는 연산자
+
+SELECT * FROM EMPLOYEE
+WHERE DEPT_CODE IN ('D6','D9');
+
+@ 연산자 우선 순위
+-> 여러 연산자를 사용하는 경우에는 우선 순위를 고려해서 사용 해야 함.
+
+산술> 연결> 비교> IS NULL/ IS NOT NULL , LIKE, IN/NOT IN>
+BETWEEN AND/ NOT BETWEEN AND > 논리(NOT) > 논리(AND) > 논리 (OR)
+
+@ ORDER BY
+-> SELECT 한 결과물에 대해 정렬을 할 때 사용하는 구문
+-> SELECT 구문의 가장 마지막에 작성하며, 실행순서도 가장 마지막에 수행 됨
+
+표현식 SELECT 컬럼1, 컬럼2, 컬럼3...
+FROM 테이블명
+WHERE 조건절
+ORDER BY 컬럼명 | 별칭 | 컬럼 순서 정렬 방식.
+
+데이터 정렬 방법
+	NUMBER		CHARACTER		DATE		NULL
+ASC 	작은수 -> 큰수	사전수			빠른날-> 늦은날 	맨아래 행(NULL이 매아래로감)
+DESC 	큰수 -> 작은수 	사전 역순		늦은날 -> 빠른날	 맨위행(NULL이 맨 위로감)
+
+
+## ASC : 오름차순 (DEFAULT) ##
+-> 지정한 컬럼을 기준으로 오름차순으로 정렬
+-> 기본적으로 ASC 정렬
+
+## DESC : 내림차순 ##
+-> 지정한 컬럼을 기준으로 내림차순으로 정렬.
+
+EX) SELECT * FROM EMPLOYEE ORDER BY 2;
+
+SELECT BONUS * SALARY FROM EMPLOYEE ORDER BY 1;
+
+ORDER BY 뒤에 컬럼 순서를 적어도 됨.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
