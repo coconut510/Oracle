@@ -1,0 +1,53 @@
+@ GROUP BY
+-> 그룹함수는 그룹으로 묶여진 단 한개의 결과값만 산출하게 됨
+-> 그룹함수를 이용하여 여러 개의 결과값을 산출하기 위해선느 그룹함수가 적용될
+그룹의 기준을 GROUP BY 절에 기술하여 사용 해야함
+
+ex) DEPT_COD 별(부서별) SALARY 의 합게를 보고 싶다면?
+
+SELECT DEPT_CODE, SUM(SALARY) FROM EMPLOYEE;
+	-> 해당 코드를 실행하게 되면 에러가 발생함
+	-> 이유는?	SUM을 하게 되면 합산이 되지만 DEPT_CODE 자체는 합산이 될수
+	없기 때문임
+
+ex)
+SELECT NVL(DEPT_CODE,'없음') AS 부서, SUM(SALARY) AS 월급합산,
+FLOOR(AVG(SALARY)) AS 부서별평균
+FROM EMPLOYEE GROUP BY DEPT_CODE
+ORDER BY 월급합산 DESC;
+
+
+@ HAVING 절
+-> 그룹함수로 값을 구해올 그룹에 대해 조건을 설정할 때는 HAVING 절을 사용함
+(그룹함수를 사용한 WHERE절은 사용 불가 함)
+
+EX) 급여 평균이 3,000,000원 이상이 그룹에 대한 평균 급여 값 검색
+
+SELECT DEPT_CODE, AVG(SALARY) FROM EMPLOYEE
+GROUP BY DEPT_CODE 
+HAVING AVG(SALARY)>=3000000;
+
+@ ROLLUP 과 CUBE
+-> 그룹별 산출한 결과값의 집계를 게산하는 함수
+-> ROLLUP은 가장 먼저 지정한 그룹별 합계와 총 합계를 구함
+-> CUBE는 그룹으로 지정된 모든 그룹에 대한 합게과 총 합게를 구함]
+
+
+-- ROLLUP을 사용하게 되면 부서별 집계 및 총 집계를 확인 할 수 있음
+-- ROLLUP은 가장 먼저 지정한 그룹별 집게와 총 집계를 구하는 함수.
+-- ROLLUP 은 가장 먼저 지정한 그룹별 집계 및 총 집계
+-- CUBE 는 그룹으로 지정된 모든 그룹에 대한 집계 및 총 집계
+
+
+@ GROUPING
+
+-> ROLLUP 이나 CUBE에 의한 집계 산출물이 인자로 전달받은 컬럼 집합의
+산출물이면 0을 반환하고, 아니면 1을 반환하는 함수
+
+-- GROUP BY 에 의해서 산출된 ROW 인경우에는 0을 반환하고
+-- ROLLUP이나 CUBE에 의해서 산출된 ROW 인 경우에는 1을 반환하게 됨
+
+
+
+
+

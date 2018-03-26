@@ -1,0 +1,89 @@
+@ 조인문(JOIN)
+-> 여러 테이블의 레코드를 조합하여 하나의 열로 표현 한것
+-> 두개 이상의 테이블에서 연관성을 가지고 있는 데이터들을 다로 분ㄹ규하여
+새로운 가상의 테이블을 이용하여 출력함
+-> 서로 다른 테이블에서 각각의 공통 값을 이용함으로써 필드를 조합함
+
+* JOIN 시 컬럼명이 같을 경우와 다를 경우 사용법은 2가지가 있음
+	- ORACLE 전용 구문
+	- ANSI 표준구문(ANSI 표준은 DBMS에 상관없이 공통적으로 사용하는 표준
+	SQL)
+
+## 연결에 사용할 두 테이블의 컬럼명이 서로 다른경우 ##
+-  ORACLE 전용구문
+	SELECT EMP_ID, EMP_NAME, DEPT_CODE, DEPT_TITLE
+	FROM EMPLOYEE, DEPARTMENT
+	WHERE DEPT_CODE = DEPT_ID;
+
+	* ORACLE 에서는 WHERE 절을 이용할때는 '='를 사용함
+
+- ANSI 표준구문
+	SELECT EMP_ID, EMP_NAME, DEPT_CODE, DEPT_TITLE
+	FROM EMPLOYEE JOIN DEPARTMENT ON(DEPT_CODE = DEPT_ID);
+
+	*ANSI 표준에서는  JOIN과 ON을 사용함.
+
+
+### 연결에 사용할 두 테이블이 컬럼명이 서로 같은 경우 ###
+- ORACLE 전용 구문
+	SELECT EMP_ID, EMP_NAME, EMPLOYEE.JOB_CODE, JOB_NAME
+	FROM EMPLOYEE, JOB
+	WHERE EMPLOYEE.JOB_CODE = JOB.JOB_CODE;
+
+	* ORACLE 에서는 테이블명, 컬럼명을 이용해서 작성
+	
+	혹은
+
+	SELECT EMP_ID, EMP_NAME, E.JOB_CODE,JOB_NAME
+	FROM EMPLOYEE E, JOB J
+	WHERE E.JOB_CODE = J.JOB_CODE;
+	
+	* 각테이블의 별칭을 붙여서도 사용할 수 있음
+
+- ANSI 표준 구문
+	SELECT EMP_ID, EMP_NAME, JOB_CODE, JOB_NAME
+	FROM EMPLOYEE JOIN JOB USING(JOB_CDE);
+	
+	*연결하려는 테이블의 컬럼명이 같을 경우엔 USING()을 사용함
+	* USING 안에[ 있는 컬럼명은 JOIN된 테이블의 컬럼명.
+
+
+
+@ JOIN 의 종류
+- INNER JOIN(내부 조인) : 교집합(일반적으로 사용하는 JOIN)
+- OUTTER JOIN(외부 조인) : 합집합
+	=> LEFT OUTER JOIN (왼쪽 외부 조인)
+	=> RIGHT OUTER JOIN( 오른쪽 외부 조인)
+	=> FULL OUTER JOIN( 완전 외부 조인)
+
+@ INNER JOIN
+-> 테이블 A 와 테이블B 모두 조건 구문에 일치하는 ROW만 반환
+SELECT<컬럼> FROM <테이블 A> INNER JOIN <테이블 B> ON <조건 구문>;
+
+테이블  A의 EMP_NAME 과 DEPT_CODE
+-> SELECT EMP_NAME, DEPT_CODE FROM EMPLOYEE;
+
+테이블 B 의  DEPT_ID 와 DEPT_TITLE
+-> SELECT DEPT_ID, DEPT_TITLE FROM DEPARTMENT;
+
+테이블 A의 EMP_DEPT와 테이블 B의 DEPT_ID가 일치하는 데이터의 EMP_NAME과 EMP_DEPT를 출력
+-> SELECT EMP_NAME, DEPT_TITLE, DEPT_CODE, DEPT_ID
+FROM EMPLOYEE
+INNER JOIN DEPARTMENT ON(DEPT_CODE = DEPT_ID);
+
+@ LEFT OUT JOIN(왼쪽 외부 조인)
+-> 테이블 A 모두 반환
+-> 테이블 B 조건 구문에 일치하는 데이터만 반환.
+
+테이블 A의 EMP_NAME 과 DEPT_CODE
+-> SELECT EMP_NAME, DEPT_CODE FROM EMPLOYEE;
+
+테이블 B의 DEPT_ID 와 DEPT_TITLE
+-> SELECT DEPT_ID, DEPT_TITLE FROM DEPARTMENT;
+
+왼쪽 조인 결과
+SELECT EMP_NAME, DEPT_TITLE, DEPT_CODE, DEPT_ID
+FROM EMPLOYEE LEFT JOIN DEPARTMENT ON(DEPT_CODE = DEPT_ID);
+
+
+
