@@ -1,0 +1,53 @@
+@ 서브 쿼리( Sub Query)
+->  하나의 SQL 문안에 포함되어 있는 또 다른 SQL 문
+-> 알려지지 않은 조건에 근거한 값들을 검색하는 SELECT 문장을 작성하는데 유용함
+-> 메인 쿼리가 서브 쿼리를 포함하는 종속적인 관계
+-> 서브 쿼리는 반드시 소괄호로 묶어야함
+	- ( SELECT.... FROM ....) 형태
+-> 서브 쿼리는 연산자의 오른쪽에 위치 해야함
+-> 서브 쿼리 내에서 ORDER BY 문법은 지원 안됨(최종 결과물은 메인 쿼리 이므로!)
+
+
+@ 서브쿼리( SUBQUERY)의 유형
+
+1. 단일행 서브 쿼리
+2. 다중행 서브쿼리
+3. 다중열 서브 쿼리
+4. 다중행 다중열 서브쿼리
+5. 상관 서브 쿼리
+6. 스칼라 서브쿼리
+
+
+
+@ 단일행 서브 쿼리
+-> 서브쿼리의 조회 결과 값(행 혹은 튜플) 의 개수 가 1개일때
+
+ex) 정 직원의 급여 평균보다 급여를 ㅏㅁㄶ이 받는 직원의 이름, 직급 부서,급여조회
+
+SELECT EMP_ID, EMP_NAME, JOB_CODE,SALARY
+FROM EMPLOYEE
+WHERE SALARY > ( SELECT AVG(SALARY) FROM EMPLOYEE );
+
+
+@ 다중행 서브 쿼리
+-> 서브쿼리의 조회 결과 값(행 또는 튜픍) 이 여러개 일때
+-> 다중 서브 쿼리 앞에는 일반 비교연산자는 사용 불가
+	- 사용 가능 연산자 : IN /  NOT IN, ANY, ALL, EXISTS
+
+
+IN : 쿼리의 비교 조건이 결과 중에서 하나라도 일치하는 것
+	EX) SELECT * FROM EMPLOYEE WHERE DEPT_CODE IN ('D9','D6');
+	* DEPT_CODE 가 'D9' 이거나 'D6' 인 것( OR 와 같음)
+
+
+SELECT EMP_NAME, DEPT_CODE
+FROM EMPLOYEE
+WHERE DEPT_CODE IN (
+SELECT DEPT_CODE
+FROM EMPLOYEE
+WHERE EMP_NAME IN ('송종기','박나라'));
+
+
+NOT IN : 쿼리의 비교 조건이 결과 중에서 하나라도 일치하지 않는것
+	EX) SELECT * FROM EMPLOYEE WHERE DEPT_CODE NOT IN('D9','D5');
+	*DEPT_CODE 가 'D9'가 아니거나 'D5'가 아닌것

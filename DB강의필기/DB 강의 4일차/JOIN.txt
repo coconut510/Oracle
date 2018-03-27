@@ -56,9 +56,25 @@
 	=> RIGHT OUTER JOIN( 오른쪽 외부 조인)
 	=> FULL OUTER JOIN( 완전 외부 조인)
 
+
+@ 다중 JOIN
+-> 여러개의 조인문을 한번에 사용할 수 있음
+
+
+1.EMPLOYEE 테이블과 DEPARTMENT 테이블을 조인해서
+EMP_ID, EMP_NAME, DEPT_CODE, DEPT_TITLE을 보고 싶다면?
+
+
+
 @ INNER JOIN
 -> 테이블 A 와 테이블B 모두 조건 구문에 일치하는 ROW만 반환
 SELECT<컬럼> FROM <테이블 A> INNER JOIN <테이블 B> ON <조건 구문>;
+
+EX)
+SELECT EMP_NO,EMP_NAME,DEPT_CODE,DEPT_TITLE,LOCATION_ID
+FROM EMPLOYEE
+INNER JOIN DEPARTMENT ON (DEPT_CODE = DEPT_ID);
+
 
 테이블  A의 EMP_NAME 과 DEPT_CODE
 -> SELECT EMP_NAME, DEPT_CODE FROM EMPLOYEE;
@@ -87,3 +103,166 @@ FROM EMPLOYEE LEFT JOIN DEPARTMENT ON(DEPT_CODE = DEPT_ID);
 
 
 
+@ RIGHT OUTER JOIN(오른쪽 외부 조인)
+-> 테이블 B 모두 반환
+-> 테이블 A 조건 구문에 일치하는 데이터만 반환
+
+테이블 A의 EMP_NAME 과 DEPT_CODE
+-> SELECT EMP_NAME, DEPT_CODE FROM EMPLOYEE;
+
+테이블 B의 DEPT_ID와 DEPT_TITLE
+-> SELECT DEPT_ID, DEPT_TITLE FROM DEPARTMENT;
+
+오른쪽 조인 결과
+-> SELECT EMP_NAME, DEPT_TITLE FROM EMPLOYEE
+RIGHT JOIN DEPRATMENT ON (DEPT_CODE = DEPT_ID);
+
+
+@ FULL OUTER JOIN (양쪽 외부 조인)
+-> 테이블 A , 테이블 B 조건 구문에 일치하는 모든 데이터 반환
+
+완전 외부 조인 결과
+-> SELECT EMP_NAME, DEPT_TITLE FROM EMPLOYEE
+FULL JOIN DEPARTMENT ON(DEPT_CODE = DEPT_ID);
+
+
+@ CROSS JOIN (상호 조인)
+-> 카테이션곱(CARTENSIAN PRODUCT) 이라고도 함
+-> 조인 되는 테이블의 각 행들이 모두 매핑된 데이터가 검색되는 조인
+-> A 와 B를 서로 조인할 때 , 조인 조건을 생략하고 A 테이블의 모든 행이 B 테이블의 
+모든 행들과 조인 되는 경우
+한쪽 테이블의 모든 행과 다른쪽 테이블의 모든 행을 조인 시킴
+	- 결과는 두 테이블의 컬럼 수를 곱한 개수가 나옴
+	- 조건이 없기 때문에 A 테이블의 한행당 다른 테이블의 모든 행이 되는 것임
+
+
+@ NOT_EQUI JOIN( 비등가 조인)
+-> 지정한 컬럼 값이 일치하는 경우가 아닌, 값의 범위에 포함되는 행들을 연결하는 방식
+-> "=" 등가 연산자가 아닌( Between, >,<,>=, <= , <> 등) 연산자들을 사용함.
+
+EX)
+
+SELECT EMP_ID, EMP_NAME, SALARY, E.SAL_LEVEL, S.SAL_LEVEL
+FROM EMPLOYEE E
+JOIN SAL_GRADE S ON (E.SALARY BETWEEN 3000000 AND 4000000)
+WHERE E.SAL_LEVEL = S.SAL_LEVEL
+ORDER BY 1;
+
+
+
+@ SELF JOIN 
+-> 조인은 두개 이상의 서로 다른 테이블을 연결하기도 하지만, 같은 테이블(하나의 테이블을 조인하는 경우가 있음
+-> 이러한 조인을 SELF JOIN 이라고 함.
+ 
+EX) ANSI 버전
+SELECT E.EMP_ID , E.EMP_NAME, E.MANAGER_ID,E2.EMP_ID AS 매니저ID, E2.EMP_NAME AS 매니저이름
+FROM EMPLOYEE E
+LEFT JOIN EMPLOYEE E2 ON (E.MANAGER_ID = E2.EMP_ID);
+
+ORACLE 버전
+
+SELECT E.EMP_ID , E.EMP_NAME, E.MANAGER_ID,E2.EMP_ID AS 매니저ID, E2.EMP_NAME AS 매니저이름
+FROM EMPLOYEE E,EMPLOYEE E2
+WHERE(E.MANAGER_ID = E2.EMP_ID);
+
+
+@ 다중 JOIN
+-> 여러개의 조인문을 한번에 사용할 수 있음
+
+1. EMPLOYEE 테이블과  DEPARTMENT 테이블을 조인해서
+EMP_ID, EMP_NAME, DEPT_CODE, DEPT_TITLE을 보고 싶다면? 
+
+SELECT EMP_ID, EMP_NAME, DEPT_CODE, DEPT_TITLE
+FROM EMPLOYEE JOIN DEPARTMENT ON(DEPT_CODE = DEPT_ID);
+
+
+
+2. DEPARTMENT 테이블과 LOCATION 테이블을 조인해서
+DEPARTMENT 의 LOCATION_ID에 따른 LOCAL_NAME을 보고 싶다면?
+
+
+SELECT LOCAL_NAME FROM
+
+
+
+@ 집합 연산자( Set Operator)
+-> 두개 이상의 테이블에서 조인을 사용하지 않고 연관된 데이터를 조회하는 방법
+-> 여러 개의 질의의 결과를 연결하여 하나로 결합하는 방식
+-> 각 테이블의 조회 결과를 하나의 테이블에 합쳐서 반환 함
+-> 조건
+	- SELECT 절의 " 컬럼 수가 동일" 해야함
+	- SELECT 절의 동일 위치에 존재하는 컬럼의 : 데이터 타입이 상호 호환 가능"
+	해야함
+
+-> UNION, UNION ALL, INTERSECT, MINUS 가 있음
+
+
+@ UNION
+-> UNION 과 UNION ALL은 여러개의 쿼리 결과를 하나로 합치는 연산자
+-> UNION 은 중복된 영역을 제외하고 하나로 합치는 연산자
+
+A = {1,5,3,4,2,};
+B = {7,6,3,8,5,9,10};
+
+A UNION B = {1,2,3,4,5,6,7,8,9,10};
+	-> 중복된 데이터를 제외하고 출력됨(첫번재 컬럼을 기준으로 오름차순으로 보여줌)
+
+
+EX) UNION을 이용해서 한번에 출력 
+
+SELECT EMP_ID, EMP_NAME, DEPT_CODE, SALARY 
+FROM EMPLOYEE
+WHERE DEPT_CODE LIKE 'D5'
+UNION
+SELECT EMP_ID, EMP_NAME, DEPT_CODE, SALARY 
+FROM EMPLOYEE
+WHERE SALARY>3000000;
+
+@ UNION ALL
+-> UNION ALL 은 UNION 과 같이 여러 쿼리 결과물에 대한 합집합을 의미하여,
+UNION 과의 차이점은 중복된 영역도 포함 시키는 연산자
+
+
+A = {1,5,3,4,2,};
+B = {7,6,3,8,5,9,10};
+
+A UNION ALL B = {1,2,3,3,4,5,5,6,7,8,9,10};
+-> 중복된 데이터 제거 작업 없이 모두 보여줌.
+-> 정렬없이 데이터 그대로 합해서 보여줌.
+
+EX) UNION ALL 을 이용해서 한번에 출력
+
+SELECT EMP_ID, EMP_NAME, DEPT_CODE, SALARY 
+FROM EMPLOYEE
+WHERE DEPT_CODE LIKE 'D5'
+UNION ALL
+SELECT EMP_ID, EMP_NAME, DEPT_CODE, SALARY 
+FROM EMPLOYEE
+WHERE SALARY>3000000;
+
+
+@INTERSECT
+-> 여러개의 SELECT 결과에서 공통된 부분만 결과로 추출함
+-> 즉, 수행 결과에 대한 교집합이라고 볼 수 있음.
+
+
+A = {1,5,3,4,2,};
+B = {7,6,3,8,5,9,10};
+
+A INTERSECT B = > {3,5};
+	-> 공통된 요소만 보여줌 (교집합)
+
+@ MINUS
+-> 선행  SELECT  결과에서 다음 SELECT 결과와 겹치는 부분을 제외한 나머지 부분만
+추출함
+-> 즉, 두 쿼리 결과물의 차집합 이라고 볼 수 있음.
+-> 주의할점은 
+
+A = {1,5,3,4,2,};
+B = {7,6,3,8,5,9,10};
+
+A MINUS B = > {1,2,4};
+	-> A를 중점으로 B 와 공통된 요소를 뺀 A를 말함
+
+B MINUS A => {6,7,8,9,10};
+	-> B 를 중점으로 A 와 공통된 요소를 뺀 B 를 말함
