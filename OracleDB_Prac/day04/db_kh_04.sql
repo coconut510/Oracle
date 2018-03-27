@@ -245,3 +245,98 @@ SELECT EMP_NAME, DEPT_TITLE, DEPT_CODE, DEPT_ID
 FROM EMPLOYEE LEFT JOIN DEPARTMENT ON(DEPT_CODE = DEPT_ID);
 
 
+-------------------------------------------------------------
+----------------------------숙제------------------------------
+ 
+--## GROUP BY 실습 문제 ##
+--
+--1. 직급별 총 급여 및 연봉을 산출 하여라.
+SELECT JOB_CODE AS 직급,SUM(SALARY) AS 급여 , SUM(SALARY)*12 AS 연봉 FROM EMPLOYEE
+GROUP BY JOB_CODE
+ORDER BY 직급;
+ 
+--2. [EMPLOYEE] 테이블에서 부서코드, 그룹별 급여의 합계, 
+--그룹별 급여의 평균(정수처리),
+--인원수를 조회하고, 부서코드 순으로 정렬 (그룹은 부서)
+SELECT NVL(DEPT_CODE,'없음') AS 부서코드, SUM(SALARY) AS 급여합계, FLOOR(AVG(SALARY)) AS 급여평균,COUNT(*) AS 인원수
+FROM EMPLOYEE
+GROUP BY DEPT_CODE
+ORDER BY 부서코드;
+ 
+ 
+--3. [EMPLOYEE] 테이블에서 부서코드, 보너스를 지급받는 
+--사원 수를 조회하고 부서코드 순으로 정렬
+SELECT NVL(DEPT_CODE,'없음') AS 부서코드, COUNT(*) AS 사원수 FROM EMPLOYEE
+WHERE BONUS IS NOT NULL
+GROUP BY DEPT_CODE
+ORDER BY 부서코드;
+ 
+ 
+--4. EMPLOYEE 테이블에서 직급이 J1을 제외하고, 
+--직급,직급별 사원수 및 평균급여를 출력하세요.
+SELECT JOB_CODE AS 직급 ,COUNT(*) AS 사원수, SUM(SALARY) AS 평균급여 FROM EMPLOYEE
+WHERE JOB_CODE NOT LIKE 'J1'
+GROUP BY JOB_CODE;
+ 
+--5. 부서내 성별 인원수를 구하세요.
+--다음과 같이 출력 되도록 만드시오
+--ex)
+--D1 남 2
+--D1 여 1
+SELECT NVL(DEPT_CODE,'없음') AS 부서코드, DECODE(SUBSTR(EMP_NO,8,1),1,'남','여') AS 성별 , COUNT(*) AS 인원 FROM EMPLOYEE
+GROUP BY DEPT_CODE,SUBSTR(EMP_NO,8,1)
+ORDER BY DEPT_CODE;
+ 
+--6. EMPLOYEE테이블에서 직급이 J1을 제외하고, 
+ 
+--입사년도별 인원수를 조회해서, 입사년 기준으로 오름차순 정렬하세요.
+SELECT SUBSTR(HIRE_DATE,1,2) AS 입사년도 , COUNT(*) AS 인원수 FROM EMPLOYEE
+WHERE JOB_CODE NOT LIKE 'J1'
+GROUP BY SUBSTR(HIRE_DATE,1,2)
+ORDER BY 입사년도;
+ 
+--7. EMPLOYEE 테이블에서 직급이 J1을 제외하고,
+ 
+--직급,직급별 사원수 및 평균급여를 출력하세요.
+SELECT JOB_CODE AS 직급, COUNT(*) AS 사원수 , AVG(SALARY) AS 평균급여 FROM EMPLOYEE
+GROUP BY JOB_CODE;
+ 
+ 
+ 
+ 
+ 
+--## ROLLUP 과 CUBE 실습 문제 ##
+ 
+ 
+-- 문제 1
+--부서내 직급별 급여 정보 출력 및 각 부서별 집계
+SELECT DEPT_CODE AS 부서코드, JOB_CODE AS 직급코드, SUM(SALARY) AS 급여정보 FROM EMPLOYEE
+GROUP BY ROLLUP(DEPT_CODE, JOB_CODE)
+ORDER BY DEPT_CODE, JOB_CODE;
+-- 문제 2
+--부서내 직급별 급여 정보 출력 및 각 부서별 집계 및 직급별 집계
+SELECT DEPT_CODE AS 부서코드, JOB_CODE AS 직급코드, SUM(SALARY) AS 급여정보 FROM EMPLOYEE
+GROUP BY CUBE(DEPT_CODE, JOB_CODE)
+ORDER BY DEPT_CODE, JOB_CODE;
+ 
+ 
+ 
+ 
+--## GROUPING 실습 문제 ##
+ 
+--부서내 직급별 급여 정보 출력 및 각 부서별 집계 및 직급별 집계 출력하기
+ 
+SELECT DECODE(GROUPING(DEPT_CODE), 1,'합계',NVL(DEPT_CODE,'인턴')) AS 부서코드,
+       DECODE(GROUPING(JOB_CODE), 1,'합계',JOB_CODE) AS 직급코드,
+       SUM(SALARY) AS 월급,
+       CASE WHEN GROUPING(DEPT_CODE) = 0 AND GROUPING(JOB_CODE) = 0 THEN '그룹별합계'
+            WHEN GROUPING(DEPT_CODE) = 0 AND GROUPING(JOB_CODE) = 1 THEN '부서별합계'
+            WHEN GROUPING(DEPT_CODE) = 1 AND GROUPING(JOB_CODE) = 0 THEN '직급별합계'
+            WHEN GROUPING(DEPT_CODE) = 1 AND GROUPING(JOB_CODE) = 1 THEN '총합계'
+            END AS 구분
+FROM EMPLOYEE
+GROUP BY CUBE(DEPT_CODE,JOB_CODE)
+ORDER BY 부서코드, 직급코드;
+
+
+
