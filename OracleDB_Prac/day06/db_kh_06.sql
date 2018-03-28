@@ -258,3 +258,51 @@ ORDER BY 사원명;
 
 
 
+
+------------실습 다시하기 숙제------------
+--@ 실습 문제
+--문제1
+--기술지원부에 속한 사람들의 사람의 이름,부서코드,급여를 출력하시오
+SELECT EMP_NAME AS 이름, DEPT_CODE AS 부서코드, SALARY AS 급여
+FROM EMPLOYEE
+WHERE DEPT_CODE = (SELECT DEPT_ID FROM DEPARTMENT WHERE DEPT_TITLE = '기술지원부');
+
+--문제2
+--기술지원부에 속한 사람들 중 가장 연봉이 높은 사람의 이름,부서코드,급여를 출력하시오
+SELECT EMP_NAME AS 이름 , DEPT_CODE AS 부서코드, SALARY AS 급여
+FROM EMPLOYEE
+WHERE SALARY = (SELECT MAX(SALARY) FROM EMPLOYEE , DEPARTMENT  
+            WHERE DEPT_TITLE = '기술지원부' AND  DEPT_CODE = DEPT_ID);
+--문제3
+--매니저가 있는 사원중에 월급이 전체사원 평균을 넘고 
+--사번,이름,매니저 이름,월급(만원단위부터)을 구하시오
+-- * 단, JOIN을 이용하시오
+SELECT E1.EMP_ID AS 사번, E1.EMP_NAME AS 이름, E2.EMP_NAME AS 매니저이름, E1.SALARY *0.0001 || '만원' AS 월급
+FROM EMPLOYEE E1 JOIN EMPLOYEE E2 ON(E1.MANAGER_ID = E2.EMP_ID)
+WHERE E1.SALARY > (SELECT AVG(SALARY) FROM EMPLOYEE)
+      AND E1.MANAGER_ID IS NOT NULL;
+
+--문제4
+--각 직급마다 급여 등급이 가장 높은 직원의 이름, 직급코드, 급여, 급여등급 조회
+SELECT EMP_NAME AS 이름 , JOB_CODE AS 직급코드,  SALARY AS 급여, SAL_LEVEL AS 급여등급
+FROM EMPLOYEE E1
+WHERE SUBSTR(SAL_LEVEL,2,1) = (SELECT MIN(SUBSTR(SAL_LEVEL,2,1)) FROM EMPLOYEE E2
+                              WHERE E1.JOB_CODE = E2.JOB_CODE GROUP BY JOB_CODE);
+
+--문제5
+-- 부서별 평균 급여가 2200000 이상인 부서명, 평균 급여 조회
+-- 단, 평균 급여는 소수점 버림
+SELECT NVL(DEPT_TITLE,'부서없음') AS 부서명, FLOOR(AVG(SALARY)) AS 평균급여
+FROM EMPLOYEE LEFT JOIN DEPARTMENT ON(DEPT_CODE = DEPT_ID)
+GROUP BY DEPT_TITLE
+HAVING AVG(SALARY) >= 2200000;
+
+--문제6
+--직급의 연봉 평균보다 적게 받는 여자사원의
+--사원명,직급코드,부서코드,연봉을 이름 오름차순으로 조회하시오
+--연봉 계산 => (급여+(급여*보너스))*1
+SELECT EMP_NAME AS 사원명, JOB_CODE AS 직급코드, DEPT_CODE AS 부서코드, (1+NVL(BONUS,0)) * SALARY * 12 AS 연봉
+FROM EMPLOYEE E1
+WHERE (1+NVL(BONUS,0)) * SALARY < (SELECT AVG(SALARY) 
+                                   FROM EMPLOYEE E2 WHERE E1.JOB_CODE = E2.JOB_CODE GROUP BY JOB_CODE)
+                                   AND SUBSTR(EMP_NO, 8,1) LIKE 2;
