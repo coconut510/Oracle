@@ -51,3 +51,178 @@ WHERE EMP_NAME IN ('송종기','박나라'));
 NOT IN : 쿼리의 비교 조건이 결과 중에서 하나라도 일치하지 않는것
 	EX) SELECT * FROM EMPLOYEE WHERE DEPT_CODE NOT IN('D9','D5');
 	*DEPT_CODE 가 'D9'가 아니거나 'D5'가 아닌것
+
+
+@ ANY : 서브쿼리의 결과 중에서 하나라도 참이면 참
+	> ANY  : 최소값 보다 크면
+	<= ANY : 최소값보다 크거나 같으면
+	< ANY  : 최대값보다 작으면
+  	<=ANY  : 최대값보다 작거나 같으면
+	= ANY  : IN 과 같은 효과
+	!=ANY  : NOT IN 과 같은 효과
+
+
+-- < ANY(OR..OR..OR)
+-- 서브쿼리에서 나온 결과들 중에서
+-- 하나라도 작다면.
+
+
+EX) X > ANY(...)
+SELECT EMP_NAME, SALARY
+FROM EMPLOYEE
+WHERE SALARY > ANY( 2000000, 5000000); 
+
+EX)
+SELECT EMP_NAME,SALARY FROM EMPLOYEE
+WHERE SALARY > ANY(SELECT SALARY FROM EMPLOYEE
+WHERE JOB_CODE LIKE 'J3');
+
+
+ALL : 서브 쿼리의 결과 중에서 모두 참이면 참
+	> ALL : 최대값 보다 크면
+	>=ALL : 최대값 보다 크거나 같으면
+	< ALL : 최소값보다 작으면
+	<=ALL : 최소값보다 작거나 같으면
+	= ALL : SUBSELECT 의 결과가 1건이면 상관없지만 여러건이면
+		 정상 처리 되지 않음 
+	!=ALL : 같이 않다면
+	(위와 마찬가지로 결과가 여러건이면 오류)
+
+
+EX) X > ALL(...)
+
+SELECT EMP_NAME, SALARY
+FROM EMPLOYEE
+WHERE SALARY . ALL(2000000, 5000000);
+
+
+EXIST : 서브쿼리의 결과 중에서 만족하는 값이 하나라도 존재하면 참
+	* 중요한것은 단순 참, 거짓을 판단하는 기준이 되는 서브쿼리 연산자
+
+
+
+EX)
+SELECT EMP_NAME , BONUS 
+FROM EMPLOYEE
+WHERE EXISTS(
+SELECT * FROM EMPLOYEE
+WHERE NVL(BONUS,0) >=0.1);
+
+@ 다중열 서브쿼리
+-> 서브쿼리의 조회 결과 컬럼의 개수가 여러개 일때
+	( 다중행과는 다르게 결과 값이 아닌 컬럼이 여러개일때)
+
+
+--  ORACLE 표기법.
+SELECT  EMP_NAME , DEPT_CODE, SALARY, LOCAL_NAME
+FROM EMPLOYEE, LOCATION
+WHERE (DEPT_CODE, LOCAL_CODE) IN 
+(SELECT DEPT_ID, LOCATION_ID FROM DEPARTMENT
+WHERE DEPT_TITLE = '기술지원부')
+AND SALARY LIKE 2000000;
+
+-- ANSI 표기법.
+
+SELECT EMP_NAME, DEPT_CODE, SALARY, LOCAL_NAME
+FROM EMPLOYEE
+JOIN LOCATION ON (DEPT_CODE, LOCAL_CODE)
+IN (SELECT DEPT_ID, LOCATION_ID FROM DEPARTMENT
+    WHERE DEPT_TITLE ='기술지원부') -- AND SALARY = 2000000;
+WHERE SALARY =2000000; 
+
+
+
+
+@ 다중행 다중열 서브쿼리
+-> 서브쿼리의 조회 결과 컬럼의 개수와 행의 개수가 여러개 일때
+
+EX) 
+
+SELECT EMP_NAME , EMP_ID, DEPT_CODE, HIRE_DATE, SALARY * 12
+FROM EMPLOYEE
+WHERE(JOB_CODE, SALARY)
+IN (SELECT JOB_CODE, MIN(SALARY)
+FROM EMPLOYEE
+GROUP BY JOB_CODE);
+
+
+@ 상관 서브쿼리 ( 상호 연관 서브쿼리)
+-> 메인 쿼리의 값을 서브쿼리에 주고 서브쿼리를 수행한 다음 그 결과를
+다시 메인 쿼리로 반환해서 수행하는 쿼리
+-> 성능이 좋진 않음
+-> 이전가지는 서브쿼리가 독단적으로 행동하고 내놓은 결과값을 사용하였고
+상관 서브쿼리는 메인쿼리의 테이블을 가져다가 사용하는 쿼리문
+
+@ 스칼라 서브쿼리
+-> 상관쿼리 이면서 결과값이 1개인 서브쿼리
+-> 스칼라 서브쿼리는 다양하게 사용함
+
+### 스칼라 서브쿼리 - SELECT 절에서 사용
+
+SELECT E.EMP_ID , E.EMP_NAME, E.MANAGER_ID,
+	NVL(((SELECT E2.EMP_NAME
+		FROM EMPLOYEE E2
+		WHERE E.MANAGER_ID =  E2.EMP_ID), '없음') AS "관리자명"
+FROM EMPLOYEE E
+ORDER BY 1;
+
+## 스칼라 서브쿼리 - WHERE 절에서 사용 ###
+
+EX) 자신이 속한 직급의 평균 급여보다 많이 받는 직원의 이름, 직급 코드, 급여를 출력
+
+SELECT EMP_NAME, JOB_CODE, SALARY
+FROM EMPLOYEE E1
+WHERE SALARY >= (SELECT AVG(SALARY)
+		FROM EMPLOYEE E2
+		WHERE E2.JOB_CODE = E1.JOB_CODE)
+ORDER BY 2;
+
+@ 인라인 뷰 ( FROM 절에서의 서브쿼리)
+-> FROM 절에 서브쿼리를 사용한 것을 인라인 뷰(INLINE-VIEW) 라고 함
+
+
+# TOP - N 분석이란?
+	-> TOP-N 질의는 컬럼에서 가장 큰 N개의 값 또는 가장 적은 N개의 값을
+	요청할 때 사용이 됨
+
+	EX) 회사에서 가장 적게 팔린 제품 10가지는?
+	혹은
+	회사에서 가장 소득이 많은 사람 3명은?
+
+
+
+EX) 회사에서 급여가 가장 높은 사람 5명을 검색하시오.
+
+ROWNUM -> 각 데이터 행의 인덱스 번호를 알수 있음.
+
+SELECT ROWNUM, 뷰.*
+FROM(
+SELECT EMP_NAME, SALARY
+FROM EMPLOYEE
+ORDER BY SALARY DESC) 뷰
+WHERE ROWNUM <=5;
+
+SELECT ROWNUM,EMPLOYEE.* FROM EMPLOYEE;
+
+
+@ WITH
+-> 서브쿼리에 이름을 붙여주고, 인라인뷰로 사용시 서브쿼리의 이름으로
+FROM 절을 기술할 수 있음.
+-> 같은 서브쿼리가 여러번 사용될 경우 중복 작성을 피할 수 있고,
+실행 속도도 빨라지는 장점이 있음
+
+
+
+## 순위를 표현하는 키워드 ##
+
+@ RANK() OVER
+-> 순위를 표현하며, 중복 순위를 표현한 다음은 해당 개수를 건너뛰고 나타냄
+-> 즉, 1,2,3,4,5,6,6,6,9,10
+
+@ DENSE_RANK() OVER
+-> 순위를 표현하며, 중복 순위에 상관없이 순차적으로 반환
+-> 즉, 1,2,3,4,5,6,6,6,7,8
+
+@ ROW_NUMBER() OVER
+-> 순위를 표현하며, 중복과 관계없이 무조건 순서대로 반환
+-> 즉, 중복값이 있다 하더라도 중복을 표현하지 않음 -> 1,2,3,4,5,6,7,8,9,10
