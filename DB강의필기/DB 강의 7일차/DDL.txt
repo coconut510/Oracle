@@ -1,0 +1,359 @@
+@ DDL 
+-> 데이터 정의 언더
+-> 객체 (OBJECT) 를 만들고 (CREATE), 수정하고 (ALTER), 삭제(DROP) 하는 구문
+
+@ 오라클 객체의 종류
+-> 테이블(TABLE), 뷰(VIEW), 시퀀스(SEQUENCE), 인덱스( INDEX),
+패키지(PACKAGE), 프로시져(PROCEDUAL) , 함수(FUNCTION),  트리거(TRIGGER),
+동의어(STNONYM) , 사용자(User)가 있음
+
+@ CREATE 테이블 만들기
+
+표현식
+CREATE TABLE 테이블명(컬럼명 자료형(크기), 컬럼명 자료형(크기), ...);
+
+EX)
+CREATE TABLE MEMBER(
+	MEMBER_ID VARCHAR2(20),
+	MEMBER_PWD VARCHAR2(20),
+	MEMBER_NAME VARCHAR2(20)
+);
+
+
+@ 컬럼 주석
+
+표현식
+
+COMMENT ON COLUMN 테이블명, 컬럼명 IS '주석내용';
+
+COMMENT ON COLUMN MEMBER.MEMBER_ID IS '회원아이디';
+COMMENT ON COLUMN MEMBER.MEMBER_PWD IS '비밀번호';
+COMMENT ON COLUMN MEMBER.MEMBER_NAME IS '회원이름';
+
+
+@ 제약조건(CONTSRAINTS)
+-> 테이블 작성시(생성시) 각 컬럼에 대한 제약조건을 설정할 수 있음
+-> 데이터 무결성을 지키기 위해 제한된 조건
+	- 데이터 무결성 : 데이터의 정확성과 일관성을 유지하기 위한것
+
+NOT NULL : 데이터에 NULL 을 허용하지 않음,
+UNIQUE ; 중복된 값을 허용하지 않음
+PRIMARY KEY (기본키) : NULL 을 허용하지 않고, 중복값을 허용하지 않음
+		컬럼의 고유 식별자로 사용하기 위함
+
+FOREIGN KEY (외래키) : 두 테이블의 데이터간 연결을 설정하고 강제 적용하여
+		외래키 테이블에 저장 될 수 있는 데이터를 제어함
+
+CHECK : 저장 가능한 데이터 값의 범위나 조건을 지정하여 설정한 값만 허용함
+
+@ 제약 조건 정보 확인
+ 
+
+
+SELECT CONSTRAINT_NAME, CONSTRAINT_TYPE FROM USER_CONSTRAINTS
+WHERE TABLE_NAME = '테이블명';
+
+* CONSTRAINT_TYPE
+	P : PRIMARY KEY
+	R : FOREIGN KEY
+	C : CHECK  또는 NOT NULL
+	U : UNIQUE
+
+EX)
+
+SELECT TABLE_NAME, COLUMN_NAME, CONSTRAINT_NAME
+FROM USER_CONS_COLUMNS -- 만든
+WHERE TABLE_NAME = 'EMPLOYEE'
+UNION
+SELECT TABLE_NAME, CONSTRAINT_NAME, CONSTRAINT_TYPE FROM USER_CONSTRAINTS --  제약 조건을 가진 열에 대한 정보 테이블
+WHERE TABLE_NAME = 'EMPLOYEE'
+ORDER BY 3 DESC;
+
+
+@ NOT NULL
+-> 해당 컬럼에 반드시 값이 기록되어야 하는경우, 특정 컬럼에 값을
+저장하거나 수정할 대 NULL값을 허용하지 않도록 컬럼 레벨에서 제한함
+
+# 테이블 생성시 제약 조건을 설정하지 않고 생성
+
+CREATE TABLE USER_NOTCONS
+(
+	USER_NO NUMBER,
+	USER_ID VARCHAR2(20),
+	USER_PWD VARCHAR2(30),
+	USER_NAME VARCHAR2(30),
+	GENDER VARCHAR2(30),
+	PHONE VARCHAR2(30),
+	EMAIL VARCHAR2(50)
+);
+-> 아무런 제약조건이 명시 되지 않으면 제한 없는 데이터 혹은
+데이터를 넣지 않고도 INSERT가 가능해짐
+
+* INSERT INTO USER_NOTCONS VALUES(1,NULL,NULL,NULL,NULL,NULL,NULL);
+
+
+
+EX) NOT NULL 제약 조건 명시
+
+CREATE TABLE USER_NOTCONS
+(
+	USER_NO NUMBER ,
+	USER_ID VARCHAR2(20) NOT NULL,
+	USER_PWD VARCHAR2(30) NOT NULL,
+	USER_NAME VARCHAR2(30) NOT NULL,
+	GENDER VARCHAR2(30) NOT NULL,
+	PHONE VARCHAR2(30) NOT NULL,
+	EMAIL VARCHAR2(50) NOT NULL
+);
+
+
+NULL 데이터 삽입시
+-> INSERT INTO USER_NOTCONS VALUES(1,NULL,NULL, NULL, NULL, NULL, NULL);
+-> NULL 제약 조건에 위반되어 처리되지 않음
+
+
+
+@ UNIQUE
+-> 컬럼 입력 값에 대해 중복을 제한하는 제약 조건
+-> 컬럼 레벨과 테이블레벨에 설정 가능
+
+## 제약 조건 설정 - 컬럼 레벨 설정방법 ##
+
+
+CREATE TABLE USER_NOTCONS
+(
+	USER_NO NUMBER ,
+	USER_ID VARCHAR2(20) UNIQUE,  -- 컬럼에 설정하면 컬럼 레벨
+	USER_PWD VARCHAR2(30) NOT NULL,
+	USER_NAME VARCHAR2(30) NOT NULL,
+	GENDER VARCHAR2(30) NOT NULL,
+	PHONE VARCHAR2(30) NOT NULL,
+	EMAIL VARCHAR2(50) NOT NULL
+);
+
+
+## 제약 조건 설정 = 테이블 레벨 설정법 ##
+
+CREATE TABLE USER_NOTCONS
+(
+	USER_NO NUMBER ,
+	USER_ID VARCHAR2(20),
+	USER_PWD VARCHAR2(30) NOT NULL,
+	USER_NAME VARCHAR2(30) NOT NULL,
+	GENDER VARCHAR2(30) NOT NULL,
+	PHONE VARCHAR2(30) NOT NULL,
+	EMAIL VARCHAR2(50) NOT NULL
+	UNIQUE ( USER_ID ) -- 마지막에 주명 테이블 레벨
+);
+
+-> UNIQUE 제[약 조건이 설정되면 중복된 데이터를 넣을수없음
+-> 하지만 UNIQUE 제약 조건이 설정되었다 하더라도 NULL 값으로 넣게 되면
+데이터가 처리 되어 버림
+-> 해결 방법은 UNIQUE 제약 조건과 NOT NULL 제약 조건을 동시에 주는 방법
+혹은 PRIMARY KEY 로 설정하는 방법이 있음
+
+
+
+@ PRIMARY KEY(기본키)
+-> 테이블에서 한 행의 정보를 구별하기 위해 사용하는 고유 식별자( Identifier)
+-> NOT NULL 제약조건과 UNIQUE 제약 조건의 의미를 둘다 가지고 있으며, 
+한 테이블당 한개만 설정 가능
+-> 컬럼 레벨, 테이블 레벨에서 지정 가능
+
+
+## PRIMARY KEY -  컬럼 레벨에서 설정 ##
+
+CREATE TABLE USER_NOTCONS
+(
+	USER_NO NUMBER PRIMARY KEY,  -- 컬럼 레벨 설정
+	USER_ID VARCHAR2(20) UNIQUE,
+	USER_PWD VARCHAR2(30) NOT NULL,
+	USER_NAME VARCHAR2(30) NOT NULL,
+	GENDER VARCHAR2(30) NOT NULL,
+	PHONE VARCHAR2(30) NOT NULL,
+	EMAIL VARCHAR2(50) NOT NULL
+	UNIQUE ( USER_ID ) -- 마지막에 주명 테이블 레벨
+);
+
+## PRIMARY KEY -  컬럼 레벨에서 설정 ##
+
+CREATE TABLE USER_NOTCONS
+(
+	USER_NO NUMBER ,
+	USER_ID VARCHAR2(20),
+	USER_PWD VARCHAR2(30) NOT NULL,
+	USER_NAME VARCHAR2(30) NOT NULL,
+	GENDER VARCHAR2(30) NOT NULL,
+	PHONE VARCHAR2(30) NOT NULL,
+	EMAIL VARCHAR2(50) NOT NULL,
+	PRIMARY KEY (USER_NO)		-- 테이블 레벨
+);
+
+
+@ CHECK
+-> 해당 컬럼에 입력되거나 수정되는 값을 체크하여, 설정된 값ㅇ 이외의 값이면
+에러를 발생시킴
+-> 비교 연산자를 이용하여 조건을 설정할 수 있으며, 
+비교값은 리터럴만 사용가능하고 값이 변하는 형태는 사용이 불가능 함
+
+## CHECK 제약 조건을 이용하여 GENDER에 'M' 또는 'F' 데이터만 올수 있도록 설정##
+-> CHECK 제약 조건은 자동으로 NOT NULL 제약 조건이 설정됨
+	( 'M'또는 'F'만 와야 하므로!)
+
+CREATE TABLE USER_NOTCONS
+(
+	USER_NO NUMBER ,
+	USER_ID VARCHAR2(20) UNIQUE,
+	USER_PWD VARCHAR2(30) NOT NULL,
+	USER_NAME VARCHAR2(30) NOT NULL,
+	GENDER VARCHAR2(30) CHECK(GENDER IN('M','F')),
+	PHONE VARCHAR2(30) NOT NULL,
+	EMAIL VARCHAR2(50) NOT NULL,
+	PRIMARY KEY (USER_NO)
+);
+
+-> GENDER 컬럼의 데이터가 M또는 F만 넣을수 있음
+INSERT INTO USER_NOTCONS
+VALUES(1,'user11','pass11','홍길동','M','010-1111-2222','hong@iei.or.kr');
+
+
+-> 다른 값을 삽입시 에러가 발생
+INSERT INTO USER_NOTCONS
+VALUES(2,'user22','pass11','홍길동','F','010-1111-2222','hong@iei.or.kr');
+
+	
+
+@ FOREIGN KEY(외래키)
+-> 참조 무결성을 쥬기하기 위한 제약 조건
+-> 참조된 다른 테이블이 제공하는 값만 사용할 수 있도록 제한을 거는것
+-> 참조되는 컬럼과 참조된 컬럼을 통해 테이블간의 관계가형성됨
+-> 해당 컬럼 값은 참조되는 테이블의 컬럼 값 중의 하나와 일치하거나
+NULL을 가질수 있음.
+
+-> 일반적으로 참조되는 테이블에서 고유 식별 할 수 있는 기본키를
+	외래키로 사용할 수 있음
+	(꼭 기본키로만 설정하는것은 아님!!)
+
+EX)
+CREATE TABLE BUY
+(
+    BUY_NO NUMBER PRIMARY KEY,
+    USER_ID VARCHAR2(20),
+    PRODUCT_NAME VARCHAR2(20),
+    REG_DATE DATE,
+    FOREIGN KEY(USER_ID) REFERENCES USER_NOTCONS(USER_ID)
+);
+
+CREATE TABLE BUY
+(
+    BUY_NO NUMBER PRIMARY KEY,
+    USER_ID VARCHAR2(20),
+    PRODUCT_NAME VARCHAR2(20),
+    REG_DATE DATE,
+    FOREIGN KEY(USER_ID) REFERENCES USER_NOTCONS(USER_ID)
+    ON DELETE SET NULL   ---- 아래처럼 추가하면 외래키를 삭제해도 삭제한 항목이
+			 ---- NULL로 표시된다.
+);
+
+## 데이터 삭제 ##
+-> 부모 테이블(참조되는)의 데이터 삭제시 자식 테이블(참조하는)의 데이터를 어떠한 방식으로
+처리할지에 대한 내용을 제약조건 설정시 옵션으로 지정할수있음.
+
+
+## CASCADE ##
+-> 연쇄 삭제
+-> 참조하는 값이 없을시 같이 삭제
+
+
+CREATE TABLE BUY
+(
+    BUY_NO NUMBER PRIMARY KEY,
+    USER_ID VARCHAR2(20),
+    PRODUCT_NAME VARCHAR2(20),
+    REG_DATE DATE,
+    FOREIGN KEY(USER_ID) REFERENCES USER_NOTCONS(USER_ID)
+    ON DELETE CASCADE
+);
+
+-> 참조하고 있는 부모 테이블(USER_NOTCONS) 에서 데이터 삭제시
+해당 데이터를 참조하고 잇는 테이블(BUY)의해당 데이터가 같이 삭제 됨
+
+
+@ DEFAULT
+-> 테이블 생성시 DEFAULT값을 줄수 있음
+-> DEFAULT로 설정된 컬럼에 데이터를 삽입할때에는
+DEFAULT로 주면 기본값으로 적용 됨
+
+EX)
+CREATE TABLE testTBL
+(
+    DATA1 NUMBER DEFAULT 100,
+    DATE2 NUMBER DEFAULT 200
+);
+
+
+INSERT INTO testTBL VALUES(1,1);
+INSERT INTO testTBL VALUES(DEFAULT, DEFAULT);
+
+@ SUBQuery를 이용한 CREATE TABLE
+-> 서브쿼리를 이용해서 SELECT 한 결과를 이용하여 테이블을 생성하는 방법
+-> 컬럼명과 데이터 타입, 값이 복사되어 테이블이 만들어 지고
+제약 조건은 NOT NULL만 복사ㅑ됨
+	(제약 조건은 NOT NULL 만 복사되므로 나머지 제약조건을 설정하려면
+	ALTER 구문을 통하여 추가 및 수정 해 주어야 함)
+
+## 만약 직원의이름, 부서 정보를 가지고 있는 새로운 테이블을
+생성 해야 한다면?##
+
+EX)
+
+CREATE TABLE EMP_DEPT_TBL
+AS SELECT EMP_NAME, DEPT_TITLE 
+FROM EMPLOYEE 
+LEFT JOIN DEPARTMENT ON (DEPT_CODE = DEPT_ID);
+
+* 주의할점! 제약 조건은 NOT NULL 제약 조건만 복사된다는 것을 꼭 기억하세요!
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
