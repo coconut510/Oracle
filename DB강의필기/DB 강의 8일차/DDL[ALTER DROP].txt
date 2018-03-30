@@ -1,0 +1,151 @@
+@ DELETE
+-> 테이블의 행을 삭제하는 구문
+-> 테이블 행 개수가 줄어듦
+-> DELETE 시에 조건문을 사용하지 않게 되면 TABLE 의 모든 데이터가 삭제될 수 있음
+-> 외래키 젱약 조건이 설정되어 있는경우 참조되고 있는 값은 삭제 할 수 없음.
+
+
+형식
+
+DELTE FROM 테이블명
+WHERE 조건
+
+* 조건을 쓰지 않게 되면 해당 테이블의 모든 내용이 삭제 되므로 주의!!
+
+EX)
+DELETE FROM EMPLOYEE_COPY
+WHERE EMP_ID = (SELECT EMP_ID FROM EMPLOYEE_COPY WHERE EMP_NAME= '전형돈' AND SALARY = 2000000);
+
+-> 삭제시 외래키(FOREIGN KEY) 제약 조건으로 컬럼 삭제가 불가능 한 경우
+제약 조건을 비활성화 할 수 있음
+
+@ TRUNCATE
+-> 테이블의 전체 행을 삭제 시 사용
+-> DELETE 문보다 수행 속도가 빠르지만, ROLLBACK을 통해 복구를 할수없음
+-> DELETE 와 마찬가지로 FOREIGN KEY 제약 조건일때는 적용 불가능 하기 때무에
+제약조건을 비활성화 해야 삭제 할 수 있음
+
+형식
+
+TRUNCATE TABLE 테이블명;
+
+@ ALTER
+-> 테이블에 정의된 내용을 수정 할때 사용하는 데이터 정의어
+-> 컬럼의 추가, 삭제, 제약 조건의 추가./삭제, 컬럼의 자료형 변경,
+DEFAULT 값 변경(옵션), 테이블명/ 컬럼명/ 제약 조건의 이름 변경 등을 할 수 있음
+
+## 연습용 TABLE 을 생성
+
+CREATE TABLE MEMBER_TEST01
+(
+	USER_NO NUMBER PRIMARY KEY,
+	USER_ID VARCHAR2(20),
+	USER_PWD CHAR(20)
+);
+
+
+EX) 테이블 컬럼 생성
+
+ALTER TABLE MEMBER_TEST01 ADD(USER_NAME VARCHAR2(20));
+
+
+
+-- 제약조건추가
+-- 형식
+-- ALTER TABLE 테이블명 ADD CONSTRAINT 제약조건 이름 제약조건(컬럼)
+ALTER TABLE MEMBER_TEST01
+ADD CONSTRAINT MEMBER_ID_UNQ UNIQUE( USER_ID);
+
+
+
+-- NOT NULL 제약 조건을 추가할때에는 ADD 가 아닌 MODIFY로 해야함
+
+ALTER TABLE MEMBER_TEST01
+MODIFY USER_PWD CONSTRAINT MEMBER_PWD_NN NOT NULL;
+
+@ 컬럼명 수정
+-> 이미 만들어진 테이블의 컬럼명을 수정할 수 있음
+
+
+-- 컬럼명 수정
+-- USER_PWD -> PASSWORD
+
+ALTER TABLE MEMBER_TEST01
+RENAME COLUMN USER_PWD TO PASSWORD;
+
+
+-- 컬럼의 데이터 타입 수정
+-- USER_NAME VARCHAR2(20) -> CHAR(30)
+
+ALTER TABLE MEMBER_TEST01
+MODIFY USER_NAME CHAR(30);
+
+--DEFAULT 값 수정
+-- USER_AGE의 DEFAULT 값 수정( 0->99)
+
+ALTER TABLE KHACADEMY MODIFY( TEL VARCHAR2(20) DEFAULT '없음' );
+
+ALTER TABLE MEMBER_TEST01 MODIFY USER_AGE DEFAULT 99;
+
+
+@ 컬럼 삭제
+-> 해당 테이블에 생성되어 있는 컬럼을 삭제 할 수 있음
+
+-- 컬럼 삭제
+-- USER_AGE 컬럼 삭제
+
+ALTER TABLE MEMBER_TEST01
+DROP COLUMN USER_AGE;
+
+
+
+-- 간단 예제
+-- MEMBER_TEST 테이블의 USER_ID 를
+-- MEMBER_FOREIGN 테이블에서 참조(외래키 설정)하고 있을때
+-- MEMBER_TEST 테이블에서 USER_ID를 삭제 하고 싶을때.
+
+
+-- 해당 컬럼을 삭제할 때 제약조건이 연결되어 있다면
+-- 해당 제약조건도 모두 삭제하면서 컬럼을 지우는 SQL
+ALTER TABLE MEMBER_TEST
+DROP COLUMN USER_ID CASCADE CONSTRAINTS;
+
+
+-- 제약 조건 삭제
+-- 설정되어 있는 제약 조건을 삭제 할수 있음.
+
+-- MEMBER_TEST01 테이블에 설정된 UNIQUE 제약 조건 삭제
+ALTER TABLE MEMBER_TEST
+DROP CONSTRAINT MEMBER_ID_UNQ;
+
+
+-- 제약 조건 이름 변경
+-- 설정되어 있는 제약조건의 이름을 변경 할 수 있음.
+
+ALTER TABLE MEMBER_TEST01
+RENAME CONSTRAINT SYS_C007136 TO MEMBER_NO_PK;
+
+
+-- 테이블 이름변경
+-- 생성된 테이블의 이름 변경이 가능함
+ALTER TABLE MEMBER_TEST RENAME TO MEMBER_TEST_TBL;
+
+
+-- 테이블 삭제
+-- DROP 명령어를 통해 테이블 삭제가 가능함
+DROP TABLE MEMBER_TEST_TBL;
+-- 혹은
+DROP TABLE MEMBER_TEST_TBL CASCADE CONSTRAINTS;
+
+
+
+
+
+
+
+
+
+
+
+
+
