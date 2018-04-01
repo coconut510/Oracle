@@ -270,45 +270,93 @@ ORDER BY DEPT_TITLE;
 
 
 -------------숙제-----------------
---## 다중 조인 실습 ##
 
-SELECT EMP_NAME AS 이름 , EXTRACT(YEAR FROM SYSDATE) -  (1900 +SUBSTR(EMP_NO,1,2)) AS 나이,
-        DEPT_TITLE AS 부서명, JOB_NAME AS 직책명
-        FROM EMPLOYEE E JOIN DEPARTMENT ON (DEPT_CODE = DEPT_ID)
-                      JOIN JOB J ON (E.JOB_CODE = J.JOB_CODE)
-        ORDER BY 나이 DESC;
-
---## 다음 그림을 보고 11문제를 풀어 보도록 하여라  ##
+              
+--## 중간 점검 실습 문제 ##
 --1. 2020년 12월 25일이 무슨 요일인지 조회하시오.
-SELECT TO_CHAR(TO_DATE('20/12/25'), 'DAY') AS 요일 FROM DUAL;
+SELECT TO_CHAR(TO_DATE('20/12/25'),'DAY') AS 요일 FROM DUAL;
 --2. 주민번호가 1970년대 생이면서 성별이 여자이고, 
 --성이 전씨인 직원들의 사원명, 주민번호, 부서명, 직급명을 조회하시오.
-SELECT EMP_NAME AS 사원명, EMP_NO AS 주민번호, DEPT_TITLE AS 부서명, JOB_NAME AS 직급명
-FROM EMPLOYEE E JOIN JOB USING(JOB_CODE)
-              JOIN DEPARTMENT ON (DEPT_CODE = DEPT_ID)
-WHERE SUBSTR(EMP_NO,1,2) BETWEEN 70 AND 79 AND
-      SUBSTR(EMP_NO,8,1) LIKE 2 AND EMP_NAME LIKE '전%';
+SELECT EMP_NAME AS 사원명, EMP_NO  AS 주민번호, DEPT_CODE AS 부서명, JOB_CODE AS 직급명 FROM EMPLOYEE
+WHERE SUBSTR(EMP_NO,1,2) BETWEEN 70 AND 79 AND EMP_NO LIKE '______-2%' AND SUBSTR(EMP_NAME,1,1) LIKE '전';
 --3. 이름에 '형'자가 들어가는 직원들의 
 --사번, 사원명, 부서명을 조회하시오.
-SELECT EMP_ID AS 사번, EMP_NAME AS 사원명 AS S
-
+SELECT EMP_NO AS 사원명, EMP_NAME AS 사원명, DEPT_TITLE AS 부서명
+FROM EMPLOYEE JOIN DEPARTMENT ON (DEPT_CODE = DEPT_ID)
+WHERE EMP_NAME LIKE '%형%';
 --4. 해외영업부에 근무하는 
 --사원명, 직급명, 부서코드, 부서명을 조회하시오.
+SELECT EMP_NAME AS 사원명, JOB_CODE AS 직급명, DEPT_CODE AS 부서코드, DEPT_TITLE AS 부서명
+FROM EMPLOYEE JOIN DEPARTMENT ON (DEPT_CODE = DEPT_ID)
+WHERE DEPT_CODE IN ('D6','D5');
 --5. 보너스포인트를 받는 직원들의 
 --사원명, 보너스포인트, 부서명, 근무지역명을 조회하시오.
+SELECT EMP_NAME AS 사원명, BONUS AS 보너스, NVL(DEPT_TITLE,'부서없음') AS 부서명, NVL(LOCAL_NAME,'근무지역없음') AS 근무지역
+FROM EMPLOYEE LEFT JOIN DEPARTMENT ON(DEPT_CODE = DEPT_ID)
+              LEFT JOIN LOCATION  ON(LOCATION_ID = LOCAL_CODE)
+WHERE BONUS IS NOT NULL;
+
 --6. 부서코드가 D2인 직원들의 
 --사원명, 직급명, 부서명, 근무지역명을 조회하시오.
---7. 급여등급테이블의 최대급여(MAX_SAL)에서 -50만원보다 많이 받는 직원들의 
+SELECT EMP_NAME AS 사원명, DEPT_CODE AS 직급명, DEPT_TITLE AS 부서명, LOCAL_NAME AS 근무지역명
+FROM EMPLOYEE LEFT JOIN DEPARTMENT ON(DEPT_CODE = DEPT_ID)
+              JOIN LOCATION  ON(LOCATION_ID = LOCAL_CODE)
+WHERE DEPT_CODE LIKE 'D2';
+
+--7. 급여등급테이블의 최대급여(MAX_SAL)보다 많이 받는 직원들의 
 --사원명, 직급명, 급여, 연봉을 조회하시오.
+SELECT EMP_NAME AS 사원명, JOB_NAME AS 직급명, SALARY AS 급여, SALARY*12 AS 연봉
+FROM EMPLOYEE E JOIN JOB J ON (E.JOB_CODE = J.JOB_CODE)
+                JOIN SAL_GRADE S ON (E.SAL_LEVEL = S.SAL_LEVEL)
+WHERE SALARY > S.MAX_SAL-500000;
+
 -- (사원테이블과 급여등급테이블을 SAL_LEVEL컬럼기준으로 조인할 것)
 --8. 한국(KO)과 일본(JP)에 근무하는 직원들의 
 --사원명, 부서명, 지역명, 국가명을 조회하시오.
+SELECT EMP_NAME AS 사원명, NVL(DEPT_TITLE,'부서없음') AS 부서명, LOCAL_NAME  AS 지역명, NATIONAL_NAME AS 국가명
+FROM EMPLOYEE E LEFT JOIN DEPARTMENT D ON (E.DEPT_CODE = D.DEPT_ID)
+                JOIN LOCATION L ON(D.LOCATION_ID = L.LOCAL_CODE)
+                JOIN NATIONAL N ON(L.NATIONAL_CODE = N.NATIONAL_CODE)
+WHERE N.NATIONAL_CODE IN ('KO','JP');
 --9. 같은 부서에 근무하는 직원들의 사원명, 부서명, 동료이름을 
 --조회하시오. (self join 사용)
+SELECT E.EMP_NAME AS 사원명, DEPT_TITLE AS 부서명, E2.EMP_NAME
+FROM EMPLOYEE E JOIN EMPLOYEE E2 ON (E.DEPT_CODE = E2.DEPT_CODE)
+                JOIN DEPARTMENT ON (E.DEPT_CODE = DEPT_ID)
+WHERE E.EMP_NAME NOT LIKE E2.EMP_NAME;
+
 --10. 보너스포인트가 없는 직원들 중에서 직급이 차장과 
---사원인 직원들의 사원명, 직급명, 급여를 조회하시오. 
+--사원인 직원들의 사원명, 직급명, 급여를 조회하시오.
 --단, join과 IN 사용할 것
+SELECT EMP_NAME AS 사원명, JOB_NAME AS 직급명 , SALARY AS 급여
+FROM EMPLOYEE E JOIN JOB J ON (E.JOB_CODE = J.JOB_CODE)
+WHERE JOB_NAME IN ('차장','사원') AND BONUS IS NULL;
+
+
 --11. 재직중인 직원과 퇴사한 직원의 수를 조회하시오.
+SELECT DECODE(ENT_YN,'Y','퇴사한 직원','재직중인 직원') AS 직원상태 , COUNT(*) AS 직원수 
+FROM EMPLOYEE
+GROUP BY ENT_YN
+ORDER BY 직원수;
+
+
+-- 실습 문제 1
+-- employee 테이블에서 기본급여가 제일 많은 사람과 제일 적은 사람의 정보를 
+-- 사번, 사원명, 기본급여를 나타내세요.
+SELECT EMP_ID AS 사번, EMP_NAME  AS 사원명, SALARY AS 기본급여
+FROM EMPLOYEE
+WHERE SALARY = (SELECT MAX(SALARY) FROM EMPLOYEE) OR
+      SALARY = (SELECT MIN(SALARY) FROM EMPLOYEE);
+
+
+-- 실습 문제 2
+-- D1, D2부서에 근무하는 사원들 중에서
+-- 기본급여가 D5 부서 직원들의 '평균월급' 보다 많은 사람들만 
+-- 부서번호, 사원번호, 사원명, 월급을 나타내세요.
+SELECT DEPT_CODE AS 부서번호, EMP_ID AS 사원번호, EMP_NAME AS 사원명, SALARY AS 월급
+FROM EMPLOYEE
+WHERE DEPT_CODE IN ('D1','D2') AND
+    SALARY > (SELECT AVG(SALARY) FROM EMPLOYEE WHERE DEPT_CODE LIKE 'D5');
 
 
 
