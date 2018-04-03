@@ -1,0 +1,724 @@
+@ PL/SQL
+->Procedural Language extension to SQL 의 약자
+-> 오라클 자체에 내장되어 있는 절차적 언어로써, SQL의 단점을 보완하여
+SQL 문장내에서 변수의 정의, 조건처리, 반복처리 등을 지원함
+
+@ PL/SQL의 유형
+-> PL/SQL의 유형은 Anonymous Block(익명 블록), Procedure(프로시저),
+	Function(함수) 가 있음
+
+- 익명 블록 (Anonymous Block)
+	-이름 없는 블록이라 불리며 간단한 block 수행시 사용됨 (1회용)
+
+- 프로시저 (Procedure)
+	-> 지정된 특정 처리를 실행하는 서브 프로그램의 한 유형으로 단독으로
+	실행되거나 다른 프로시저나 다른 툴(Oracle Developer, sqlplus)등에
+	의해 호출되어 실행 됨
+
+- 함수 (Function)
+	-> Prodedure 와 수행되는 결과가 유사하나 값을 반환하는 형태
+	-> 프로시저는 리턴값이 없지만 함수는 리턴 값(반환 값) 이 있음
+
+@ PL/SQL 블록 문법
+
+DECLARE	
+	[선언부]
+BEGIN
+	[실행부]
+EXCEPTION
+	[예외처리부]
+END;
+
+
+
+*시작전에 SET SERVEROUTPUT ON; 를 해줘야지 콘솔창에 뜬다.
+
+ex)
+
+DECLARE SELECTION (선언부) - 선택
+-> 변수나 상수를 선언하는 부분
+-> DECLARE로 시작 함
+-> 선택 사항이기 때문에 선언할 변수가 없다면 생략 해도 됨
+
+EXECUTABLE SECTION (실행부) - 필수
+-> 제어문, 반복문, 함수 정의 등 로직을 기술하는 부분
+-> BEGIN 으로 시작 함
+-> 블록내에서 실제 코드를 실행하는 핵심적인 부분
+
+EXCEPTION SECTION (예외 처리부) - 선택
+-> 예외사항 발생시 해결하기 위한 문자 기술
+-> 자바의 EXCEPTION 과 비슷함
+-> EXCEPTION으로 시작함
+
+END : 
+-> 블록의 종료를 의미
+
+/
+-> PL/SQL 종료 및 실행을 의미
+
+## 기본 PL/SQL ##
+
+BEGIN
+	DBMS_OUTPUT.PUT_LINE('HELLO ORACLE');
+END;
+/
+
+
+## 설명 ##
+DBMS_OUTPUT.PUT_LINE('HELLO ORACLE');
+-> 자바의 PRINTLN 처럼 출력하는 함수
+
+## 기본 설정 ##
+SET SERVEROUTPUT ON;
+-> 프로시져를 사용하여 출력하는 내용을 화면에 보여주도록 서정하는 환경 변수
+-> DEFAULT 값은 OFF 이기 때문에 ON 으로 변경해주어야
+	DEBMS_OUTPUT.PUT_LINE 함수 사용시 출력이 가능해 짐
+
+@ PL/SQL 작성 요령
+-> PL/SQL 블록 내에서는 한 문장을 종료할 때마다 세미콜론(;)을 사용
+-> END 뒤에 세미콜론(;) 을 사용하여 하나의  블록이 끝났다는 것을 명시함
+-> 쿼리문을 수행하기 위해서 / 가 입력되어야 하며, PL/SQL 블록은 행에
+/ 가 있으면 종결된 것으로 간주함.
+
+
+
+
+## DECLARE 및 EXCEPTION을 선언한 PL/SQL 사용해보기
+
+EX)
+DECLARE
+    ID NUMBER;
+    NAME VARCHAR2(20);
+    NO VARCHAR2(30);
+BEGIN
+    SELECT EMP_ID,EMP_NAME, EMP_NO
+    INTO ID,NAME, NO
+    FROM EMPLOYEE
+    WHERE EMP_NAME = '&이름';
+    DBMS_OUTPUT.PUT_LINE(ID);
+    DBMS_OUTPUT.PUT_LINE(NAME);
+    DBMS_OUTPUT.PUT_LINE(NO);
+EXCEPTION
+    WHEN NO_DATA_FOUND
+    THEN DBMS_OUTPUT.PUT_LINE('데이터가 없습니다.!');
+END;
+/
+
+
+-- 해당 사원의 사원번호를 입력시
+-- 이름, 부서명, 직급명이 출력 되도록 PL/SQL로 만들어 보시오.
+
+DECLARE
+    NAME VARCHAR2(20);
+    DEPT_NAME VARCHAR2(30);
+    JOB_NAME VARCHAR2(20);
+BEGIN
+    SELECT EMP_NAME,DEPT_TITLE, JOB_NAME
+    INTO NAME,DEPT_NAME,JOB_NAME
+    FROM EMPLOYEE E JOIN DEPARTMENT D ON (E.DEPT_CODE = D.DEPT_ID)
+                    JOIN JOB J ON(E.JOB_CODE = J.JOB_CODE)
+    WHERE EMP_ID  = '&사원번호';
+    DBMS_OUTPUT.PUT_LINE('이름 : ' || NAME);
+    DBMS_OUTPUT.PUT_LINE('부서명 : ' ||DEPT_NAME);
+    DBMS_OUTPUT.PUT_LINE('직급명 : ' ||JOB_NAME);
+EXCEPTION
+    WHEN NO_DATA_FOUND
+    THEN DBMS_OUTPUT.PUT_LINE('데이터가 없습니다.');
+END;
+/
+
+
+## 변수 선언
+
+변수명 [CONSTANT] 자료형 (바이트 크기) [NOT NULL] [: = 초기값];
+
+- CONSTANT : 값을 변경하지 못하게 함( 상수 형태)
+- NOT NULL : 반드시 값 지정, NULL 사용못함
+- 초기값에 계산식 사용도 가능함
+
+EX)
+
+DECLARE
+	DATA NUMBER := 100;
+
+-> DATA 변수를 선언과 동시에 초기값 100을대입
+
+## 변수에 값 대입 ##
+
+변수명 := 값;
+
+EX)
+
+DECLARE
+	DATA1 NUMBER;
+	DATA2 NUMBER := 200;
+BEGIN
+	DATA1 : = 100;
+	DBMS_OUTPUT.PUT_LINE(DATA1);
+	DBMS_OUTPUT.PUT_LINE(DATA2);
+END;
+/
+
+
+@ 변수의 자료형
+
+## 기본 자료형 ##
+
+문자형 : VARCHAR2
+숫자형 : NUMBER
+날짜형 : DATE
+부울형(BOOLEAN) : BOOLEAN
+
+
+
+
+## 복잡 자료형 ##
+
+레코드 (RECORD)
+
+
+@ 변수의 종류
+-> PL/SQL 변수는 일반 (스칼라) 변수, 상수, %TYPE, $ROWTYPE, 레코드(RECORD) 등이 있음
+
+## 스칼라 변수 (일반 변수) : 기존 SQL 의 자료형과 유사함
+사용방법 ; 변수명 데이터 타입(바이트) [:= 초기값];
+
+
+ex)
+
+	ENO NUMBER;
+	EMP_NAME VARCHAR2(10);
+
+ex2)
+DECLARE
+	NAME VARCHAR2(10) :='홍길동';
+	AGE NUMBER(4) := 20;
+	ADDR VARCHAR2(50) := '경기도';
+BEGIN
+	DBMS_OUTPUT.PUT_LINE('이름 : ' || NAME);
+	DBMS_OUTPUT.PUT_LINE('나이 : ' || AGE);
+	DBMS_OUTPUT.PUT_LINE('주소 : ' || ADDR);	
+EXCEPTION
+	WHEN NO_DATA_FOUND
+	THEN DBMS_OUTPUT.PUT_LINE('No Data!');
+END;
+/
+
+## 상수 ##
+-> 일반 변수와 유사하나  CONSTANT 라는 키워드가 자료형 앞에 붙고 선언시에
+값을 할당해주어야 함
+
+사용방법 : 변수명 CONSTANT 데이터 타입 :='초기값'
+
+EX)
+	USER_NAME CONSTANT VARCHAR2(20) :='홍길동';
+
+
+## 참조(REFERENCE)형 변수
+-> 이전에 선언된 다른 변수 또는 테이블의 컬럼 자료형에 맞추어 변수를 선언
+하기 위한 변수
+
+ex)
+
+DECLARE
+    ID VARCHAR2(20);
+    NAME NUMBER;
+BEGIN
+    SELECT EMP_ID, EMP_NAME
+    INTO ID, NAME
+    FROM EMPLOYEE
+    WHERE EMP_NAME = '선동일';
+    
+    DBMS_OUTPUT.PUT_LINE('ID : ' || ID);
+    DBMS_OUTPUT.PUT_LINE('NAME : ' || NAME);
+END;
+/
+
+*위 코드는 에러가 발생함(EMP_NAME은 문자열 데이터이지만 NAME변수는 NUMBER 형 이기 때문)
+
+-> 변수선언시  모든 컬럼에 따른 데이터 타입을 외우기는 힘듦
+-> 참조형 변수를 사용하면 해당 컬럼에 맞는 데이터 타입을 가진 변수를 선언할 수 있음.
+
+
+
+##% TYPE 속성을 사용한 참조 변수##
+
+사용방법 : 변수명 테이블.컬럼명%TYPE;
+
+ex)
+	%TYPE 으로 즉정 테이블 컬럼의 자료형을 참조하는 레퍼런스 변수를 만들 수 있음
+
+	EMP_NO EMPLOYEE.EMP_NO%TYPE;
+	EMP_NAME EMPLOYEE.EMP_NAME%TYPE;
+
+-> %TYPE속성을 사용하여 선언한 EMPNO 변수는 해당 테이블의 해당 컬럼과 자료형을
+	그대로 참조해서 만들어진 변수
+-> 컬럼의 자료형이 변경된다 하여도 PL/SQL 구문을 변경할 필요 없이
+	바로 적용되어 사용 할 수 있음.
+
+ex)
+
+DECLARE
+    ID EMPLOYEE.EMP_ID%TYPE;
+    NAME EMPLOYEE.EMP_NAME%TYPE;
+    NO EMPLOYEE.EMP_NO%TYPE;
+    SALARY EMPLOYEE.SALARY%TYPE;
+    HIRE_DATE EMPLOYEE.HIRE_DATE%TYPE;
+BEGIN
+    SELECT EMP_ID, EMP_NAME, EMP_NO, SALARY, HIRE_DATE
+    INTO ID, NAME, NO, SALARY, HIRE_DATE
+    FROM EMPLOYEE
+    WHERE EMP_NAME = '&이름';
+    DBMS_OUTPUT.PUT_LINE('사원번호 : '||ID);
+    DBMS_OUTPUT.PUT_LINE('사원이름 : '||NAME);
+    DBMS_OUTPUT.PUT_LINE('주민번호 : '||NO);
+    DBMS_OUTPUT.PUT_LINE('급여 : '||SALARY);
+    DBMS_OUTPUT.PUT_LINE('입사일 : '||HIRE_DATE);
+EXCEPTION
+    WHEN NO_DATA_FOUND
+    THEN DBMS_OUTPUT.PUT_LINE('데이터가 없습니다');
+END;
+/
+
+# %ROWTYPE 속성 ##
+-> %TYPE 이 컬럼 단위 참조라면, 행(ROW) 단위로 참조하는 %ROWTYPE속성도 있음
+-> 테이블을 참조하는 변수가 됨
+
+ex)
+	EMP EMP%ROWTYPE;
+-> 특정 테이블의 컬럼 개수나 데이터 형식을 몰라도 지정할 수 있음
+-> SELECT문장으로 행을 검색할 때 편리함
+
+-> %TYPE과 유사하게 참조할 테이블의 컬럼 데이터 타입을 자동적으로 가져오나
+1개의 컬럼 형태가 아닌 여러개의 컬럼 값을 자동으로 가져오는 역할을 함
+
+사용방법 ; 변수명 테이블 %ROWTYPE;
+
+ex)
+DECLARE
+    EMP EMPLOYEE%ROWTYPE;
+BEGIN
+    SELECT EMP_ID, EMP_NAME, EMP_NO 
+    INTO EMP.EMP_ID,EMP.EMP_NAME, EMP.EMP_NO
+    FROM EMPLOYEE
+    WHERE EMP_ID = '200';
+    DBMS_OUTPUT.PUT_LINE('사원번호 : ' ||EMP.EMP_ID);
+    DBMS_OUTPUT.PUT_LINE('사원명 : ' ||EMP.EMP_NAME);
+    DBMS_OUTPUT.PUT_LINE('주민번호 : ' ||EMP.EMP_NO);
+    
+EXCEPTION
+    WHEN NO_DATA_FOUND
+    THEN DBMS_OUTPUT.PUT_LINE('데이터가 없습니다!');
+END;
+/
+
+
+
+## 레코드(RECORD ) 변수 ##
+-> %ROWTYPE 이 참조할 테이블의 컬럼 데이터타입을 자동으로 가져오는 반면
+RECORD 는 직접적으로 컬럼 타입을 지정해 줄수 있음
+
+사용 방법 : TYPE 레코드타입명 IS RECORD( 변수명 변수타입, 변수명 변수타입,....);
+
+	레코드객체명 레코드타입명;
+
+
+ex)
+DECLARE
+    TYPE MY_ROWTYPE IS RECORD(
+        ID EMPLOYEE.EMP_ID%TYPE,
+        NAME VARCHAR2(20),
+        SALARY EMPLOYEE.SALARY%TYPE
+    );
+    EMP MY_ROWTYPE;
+BEGIN
+    SELECT EMP_ID, EMP_NAME, SALARY
+    INTO EMP.ID, EMP.NAME, EMP.SALARY
+    FROM EMPLOYEE
+    WHERE EMP_ID = '200';
+    
+    DBMS_OUTPUT.PUT_LINE(EMP.ID);
+    DBMS_OUTPUT.PUT_LINE(EMP.NAME);
+    DBMS_OUTPUT.PUT_LINE(EMP.SALARY);
+EXCEPTION 
+    WHEN NO_DATA_FOUND
+    THEN DBMS_OUTPUT.PUT_LINE('데이터가 없습니다.!');
+END;
+/
+
+
+
+
+--@실습문제1
+--사번, 사원명, 직급코드, 급여를 담을수 있는 참조변수를 통해서 (%TYPE)
+--송종기사원의 사번, 사원명, 직급코드,급여를 익명블럭을 통해 스크립트 출력하세요.
+DECLARE
+    ID EMPLOYEE.EMP_ID%TYPE;
+    NAME EMPLOYEE.EMP_NAME%TYPE;
+    J_CODE EMPLOYEE.JOB_CODE%TYPE;
+    SALARY EMPLOYEE.SALARY%TYPE;
+BEGIN
+    SELECT EMP_ID, EMP_NAME, JOB_CODE, SALARY
+    INTO ID, NAME, J_CODE, SALARY
+    FROM EMPLOYEE
+    WHERE EMP_NAME = '&이름';
+    DBMS_OUTPUT.PUT_LINE('사번 : ' || ID);
+    DBMS_OUTPUT.PUT_LINE('이름 : ' || NAME);
+    DBMS_OUTPUT.PUT_LINE('직급코드 : ' || J_CODE);
+    DBMS_OUTPUT.PUT_LINE('급여 : ' || SALARY);
+EXCEPTION
+    WHEN NO_DATA_FOUND
+    THEN DBMS_OUTPUT.PUT_LINE('데이터가 없습니다!');
+END;
+/
+--@실습문제2
+--사번, 사원명, 직급명을 담을수 있는 참조변수를 통해서 (record)
+-- 사원명을 검색하여 해당 사원의 사번, 사원명, 부서명,직급명을 
+-- 익명블럭을 통해 스크립트 출력하세요.
+DECLARE
+     TYPE EMP_RECORD IS RECORD(
+        ID EMPLOYEE.EMP_ID%TYPE,
+        NAME EMPLOYEE.EMP_NAME%TYPE,
+        D_TITLE DEPARTMENT.DEPT_TITLE%TYPE,
+        JOB_NAME JOB.JOB_NAME%TYPE
+    );
+    EMP EMP_RECORD;
+BEGIN
+    SELECT EMP_ID, EMP_NAME, JOB_NAME, DEPT_TITLE
+    INTO EMP.ID, EMP.NAME,EMP.D_TITLE, EMP.JOB_NAME
+    FROM EMPLOYEE E JOIN JOB J ON(E.JOB_CODE = J.JOB_CODE)
+                    LEFT JOIN DEPARTMENT D ON(E.DEPT_CODE = D.DEPT_ID)
+    WHERE EMP_NAME = '&이름';
+    DBMS_OUTPUT.PUT_LINE('사번 : ' || EMP.ID);
+    DBMS_OUTPUT.PUT_LINE('이름 : ' || EMP.NAME);
+    DBMS_OUTPUT.PUT_LINE('부서명 : ' || NVL(EMP.D_TITLE,'없음'));
+    DBMS_OUTPUT.PUT_LINE('직급명 : ' || EMP.JOB_NAME);
+EXCEPTION
+    WHEN NO_DATA_FOUND
+    THEN DBMS_OUTPUT.PUT_LINE('데이터가 없습니다!');
+END;
+/
+
+
+--@실습문제3
+-- 사원번호를 입력하여 해당 사원을 찾아  (%ROWTYPE을 사용)
+-- 사원명, 주민번호, 입사일, 부서명을 
+-- 익명블럭을 통해 스크립트 출력하세요.
+
+DECLARE
+    EMP EMPLOYEE%ROWTYPE;
+    DEP DEPARTMENT%ROWTYPE;
+BEGIN
+    SELECT EMP_NAME,EMP_NO, HIRE_DATE, DEPT_TITLE
+    INTO EMP.EMP_NAME, EMP.EMP_NO, EMP.HIRE_DATE, DEP.DEPT_TITLE
+    FROM EMPLOYEE LEFT JOIN DEPARTMENT ON (DEPT_CODE = DEPT_ID)
+    WHERE EMP_ID = '&사원번호';
+    DBMS_OUTPUT.PUT_LINE('사원명 : ' || EMP.EMP_NAME);
+    DBMS_OUTPUT.PUT_LINE('주민번호 : ' || EMP.EMP_NO);
+    DBMS_OUTPUT.PUT_LINE('입사일 : ' || EMP.HIRE_DATE);
+    DBMS_OUTPUT.PUT_LINE('부서명 : ' || NVL(DEP.DEPT_TITLE,'없음'));
+EXCEPTION
+    WHEN NO_DATA_FOUND
+    THEN DBMS_OUTPUT.PUT_LINE('데이터가 없습니다!');
+END;
+/
+
+
+@ PL/SQL의 선택문
+-> PL/SQL 에서 모든 문자들은 기술한 순서대로 순차적으로 수행이 됨
+-> 문장을 선택적으로 수행하려면 IF 문을 사용 하면 됨
+
+## IF~THEN~ END IF 문 ##
+
+IF 조건 THEN
+	조건을 만족할 경우 처리 구문;
+END IF
+
+예제 )
+--사원 번호를 가지고 사원의 사번, 이름, 급여, 보너스율을 출력하고
+-- 보너스율이 없으면 '보너스를 지급받지 않는 사원입니다.' 를 출력 하려면?
+-- 1. 사원번호를 가지고 해당 사원의 사번, 이름, 급여, 보너스율을 출력
+-- 2. 보너스율이 0% 라면?
+--      -> 보너스를 지급받지 않는 사원입니다.
+
+DECLARE
+    EMP EMPLOYEE%ROWTYPE;
+BEGIN
+    SELECT EMP_ID, EMP_NAME, SALARY, NVL(BONUS,0)
+    INTO EMP.EMP_ID, EMP.EMP_NAME, EMP.SALARY, EMP.BONUS
+    FROM EMPLOYEE
+    WHERE EMP_ID = '&사원번호';
+    DBMS_OUTPUT.PUT_LINE('사번 : ' ||EMP.EMP_ID);
+    DBMS_OUTPUT.PUT_LINE('이름 : ' ||EMP.EMP_NAME);
+    DBMS_OUTPUT.PUT_LINE('급여 : ' ||EMP.SALARY);
+    DBMS_OUTPUT.PUT_LINE('보너스 : ' ||EMP.BONUS * 100 ||'%');
+    IF(EMP.BONUS = 0)
+    THEN DBMS_OUTPUT.PUT_LINE('보너스를 지급받지 않는 사원입니다.');
+    END IF;
+END;
+/
+
+
+## IF ~ THEN ELSE ~END IF ##
+
+형식
+IF 조건 THEN
+	조건을 만족할 경우 처리 구문;
+ELSE
+	조건을 만족하지 않을경우 처리 구문;
+END IF;
+
+예시)  --사원 번호를 가지고 사원의 사번, 이름, 급여, 보너스율을 출력 함
+	-- 이때 ,  보너스율이 없으면 '보너스를 지급받지 않는 사원입니다.' 를 
+ 	-- 출력하고 보너스율이 있다면 보너스율을 출력함
+	-- (즉, 보너스율이 0%라면 보너스율을 출력하지 않음)
+
+
+
+
+-- 사원번호를 가지고 해당 사원을 조회
+-- 이때 사원명, 부서명을 출력하여라.
+-- 만약 부서가 없다면 부서명을 출력하지 않고,
+-- '부서가 없는 사원입니다' 를 출력하고
+-- 부서가 있다면 부서명을 출력하여라
+DECLARE
+    EMP EMPLOYEE%ROWTYPE;
+    DEP DEPARTMENT%ROWTYPE;
+BEGIN
+    SELECT EMP_NAME, DEPT_TITLE
+    INTO EMP.EMP_NAME, DEP.DEPT_TITLE
+    FROM EMPLOYEE LEFT JOIN DEPARTMENT ON (DEPT_CODE = DEPT_ID)
+    WHERE EMP_ID = '&사원번호';
+    DBMS_OUTPUT.PUT_LINE('사원명 : ' || EMP.EMP_NAME);
+    IF(DEP.DEPT_TITLE IS NULL)
+    THEN DBMS_OUTPUT.PUT_LINE('부서가 없는 사원입니다.');
+    ELSE DBMS_OUTPUT.PUT_LINE('부서명 : ' || DEP.DEPT_TITLE);
+    END IF;
+EXCEPTION
+    WHEN NO_DATA_FOUND
+    THEN DBMS_OUTPUT.PUT_LINE('데이터가 없습니다!');
+END;
+/
+
+
+--  문제 2
+-- 사원 코드를 입력 받았을때 사번, 이름, 부서코드, 부서명, 소속 값을 출력하시오
+-- 그때, 소속값은 J1, J2 는 임원진, 그외에는 일반직원으로 출력되게 하시오
+
+DECLARE
+    EMP EMPLOYEE%ROWTYPE;
+    DEP DEPARTMENT%ROWTYPE;
+    TEAM VARCHAR2(20);
+BEGIN
+    SELECT EMP_NO, EMP_NAME, DEPT_CODE, DEPT_TITLE, JOB_CODE
+    INTO EMP.EMP_NO, EMP.EMP_NAME, EMP.DEPT_CODE, DEP.DEPT_TITLE, EMP.JOB_CODE
+    FROM EMPLOYEE LEFT JOIN DEPARTMENT ON(DEPT_CODE = DEPT_ID)
+    WHERE EMP_ID = '&사원코드';
+    DBMS_OUTPUT.PUT_LINE('사번 : ' || EMP.EMP_NO);
+    DBMS_OUTPUT.PUT_LINE('이름 : ' || EMP.EMP_NAME);
+    DBMS_OUTPUT.PUT_LINE('부서코드 : ' || NVL(EMP.DEPT_CODE,'없음')); 
+    DBMS_OUTPUT.PUT_LINE('부서이름 : ' || NVL(DEP.DEPT_TITLE,'없음'));
+    IF(EMP.JOB_CODE IN ('J1','J2'))
+    THEN DBMS_OUTPUT.PUT_LINE('소속값 : 임원진');
+    ELSE DBMS_OUTPUT.PUT_LINE('소속값 : 일반직원');
+    END IF;
+END;
+/
+
+
+## IF ~ THEN ELSEIF ~ ELSE END IF ##
+
+IF 조건1 THEN
+	조건1을 만족할 경우 처리 구문;
+ELSIF 조건2 THEN
+	조건2를 만족할 경우 처리 구문;
+ELSIF 조건3 THEN
+	조건3을 만족할 경우 처리 구문;
+ELSE
+	모든 조건을 만족하지 않을경우 처리 구문;
+END IF;
+
+ex)	
+--사원번호로 사원을 조회하였을때
+--	급여레벨 S1, S2 인 경우는 고임금
+--	급여레벨 S3,S4 인 경우에는 평균임금
+--	급여레벨 S5,S6인 경우에는 저임금
+--	로 출력 될 수 있도록 하여라.  
+DECLARE
+    SALLEVEL EMPLOYEE.SAL_LEVEL%TYPE;
+BEGIN
+    SELECT SAL_LEVEL 
+    INTO SALLEVEL
+    FROM EMPLOYEE
+    WHERE EMP_ID = '&사원번호';
+    
+    IF(SALLEVEL IN ('S1','S2')) THEN DBMS_OUTPUT.PUT_LINE('고임금');
+    ELSIF(SALLEVEL IN ('S3','S4')) THEN DBMS_OUTPUT.PUT_LINE('평균임금');
+    ELSIF(SALLEVEL IN ('S5','S6')) THEN DBMS_OUTPUT.PUT_LINE('저임금');
+    ELSE DBMS_OUTPUT.PUT_LINE('열정페이...');
+    END IF;
+END;
+/
+
+## CASE 문 ##
+-> 자바의 SWITCH 문과 유사함
+-> CASE ~ END CASE;
+
+유형 
+CASE 변수
+	WHEN 값1 THEN
+		실행문1;
+	WHEN 값2 THEN
+		실행문2;
+	ELSE 실행문3;
+END CASE;
+
+예시) 1~3 까지의 수를 입력 받고 
+		1을 입력받으면' 안녕하세요; 
+		2를 입력받으면 '반갑습니다'
+		3을 입력받으면 '행복하세요'
+	그외 입력시에는 '잘못 입력하셨습니다' 를 출력하는 코드
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
