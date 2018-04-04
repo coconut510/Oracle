@@ -580,6 +580,22 @@ END CASE;
 	그외 입력시에는 '잘못 입력하셨습니다' 를 출력하는 코드
 
 
+DECLARE
+    DATA NUMBER;
+BEGIN
+    DATA:= '&DATA값';
+    CASE DATA
+        WHEN 1 THEN
+            DBMS_OUTPUT.PUT_LINE('안녕하세요');
+        WHEN 2 THEN
+            DBMS_OUTPUT.PUT_LINE('반갑습니다');
+        WHEN 3 THEN
+            DBMS_OUTPUT.PUT_LINE('행복하세요');
+        ELSE
+            DBMS_OUTPUT.PUT_LINE('잘못 입력하셨습니다.');
+        END CASE;
+END;
+/
 
 
 

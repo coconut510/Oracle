@@ -1,0 +1,69 @@
+
+@ PL/SQL 반복문
+
+## BASIC LOOP : 조건 없이 무한 반복
+
+DECLARE
+	i NUMBER := 1;
+BEGIN
+	LOOP
+		DBMS_OUTPUT.PUT_LINE(i);
+		i :=i+1;
+		IF i>5 THEN EXIT;
+		END IF;
+	END LOOP;
+END;
+/
+
+
+## FOR LOOP
+-> FOR LOOP는 문법 안에서 변수를 선언하여 사용하므로 미리 선언할 필요가 없음
+-> 카운트 값은 자동으로 1씩 증가
+-> REVERSE 는 1씩 감소
+
+BEGIN
+	FOR i IN 1..5 LOOP
+		DBMS_OUTPUT.PUT_LINE(i);
+	END LOOP;
+END;
+/
+
+## REVERSE
+
+BEGIN
+	FOR i IN REVERSE 1..5 LOOP
+		DBMS_OUTPUT.PUT_LINE(i);
+	END LOOP;
+END;
+/
+
+
+## WHILE LOOP ##
+-> 제어 조건이 TRUE 인 동안만 문장 반복이 실행 됨
+-> LOOP를 실행 할때 조건이 처음부터 FALSE이면 한번도 수행하지 않음
+
+
+형식
+WHILE 반복시킬 조건문 LOOP
+	반복시킬 문장;
+END LOOP;
+
+
+ex) 1~5 까지 반복 처리
+
+DECLARE
+	N NUMBER :=1;
+BEGIN
+	WHILE N  <= 5 LOOP
+	DBMS_OUTPUT.PUT_LINE(N);
+	N:= N+1;
+END LOOP;
+END;
+/
+
+
+
+
+
+
+

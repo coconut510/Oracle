@@ -1,0 +1,337 @@
+
+
+DECLARE
+	i NUMBER := 1;
+BEGIN
+	LOOP
+		DBMS_OUTPUT.PUT_LINE(i);
+		i :=i+1;
+		IF i>5 THEN EXIT;
+		END IF;
+	END LOOP;
+END;
+/
+
+
+BEGIN
+	FOR i IN 1..5 LOOP
+		DBMS_OUTPUT.PUT_LINE(i);
+	END LOOP;
+END;
+/
+
+BEGIN
+	FOR i IN REVERSE 1..10 LOOP
+        FOR j IN REVERSE 1..5 LOOP
+            DBMS_OUTPUT.PUT_LINE(i*j);
+        END LOOP;
+	END LOOP;
+END;
+/
+
+
+-- PL/SQL 반복문을 이용하여 사번을 입력 하였을대
+-- 입력한 사번부터 사번이 1씩 증가하여 5명을 출력하여라
+-- EX) 200 번 입력시 200~204번가지 출력
+
+DECLARE
+    START_ID NUMBER;
+    EMP EMPLOYEE%ROWTYPE;
+BEGIN
+    START_ID := '&시작사원번호';
+    FOR i IN 0..4 LOOP
+        SELECT EMP_ID, EMP_NAME, HIRE_DATE
+        INTO EMP.EMP_ID, EMP.EMP_NAME, EMP.HIRE_DATE
+        FROM EMPLOYEE
+        WHERE EMP_ID = TO_CHAR(START_ID + i);
+        DBMS_OUTPUT.PUT_LINE('=====================');
+        DBMS_OUTPUT.PUT_LINE('사번 : ' || EMP.EMP_ID);
+        DBMS_OUTPUT.PUT_LINE('이름 : ' || EMP.EMP_NAME);
+        DBMS_OUTPUT.PUT_LINE('입사일 : ' || EMP.HIRE_DATE);
+        DBMS_OUTPUT.PUT_LINE('=====================');
+    END LOOP;
+EXCEPTION
+    WHEN NO_DATA_FOUND
+    THEN DBMS_OUTPUT.PUT_LINE('해당 사원 번호가 없습니다.');
+END;
+/
+
+/*
+ 문제1) 1~10까지 반복하여 TEST1테이블에 데이터가 저장되게 하시오
+    KH 계정에서 TEST1 테이블 생성
+    -> CREATE TABLE TEST1(BUNHO NUMBER(3)
+*/
+CREATE TABLE TEST1(BUNHO NUMBER(3), IRUM VARCHAR2(10));
+DROP TABLE TEST1;
+BEGIN
+	FOR i IN 1..10 LOOP
+		INSERT INTO TEST1 VALUES(i,SYSDATE);
+	END LOOP;
+END;
+/
+SELECT * FROM TEST1;
+
+
+/*
+  문제2) TOP N 분석을 위한 PL/SQL 을 만들어라
+  '급여'/ '보너스' / '입사일'
+  무조건 1위~5위 까지를 출력하는 PL/SQL을 만들어라
+*/
+
+DECLARE
+    EMP EMPLOYEE%ROWTYPE;
+    TYPE_CHR VARCHAR2(20);
+    RANKNUM NUMBER;
+BEGIN
+    TYPE_CHR := '&항목';
+    
+    IF(TYPE_CHR = '급여')
+    THEN
+        FOR i IN 1..5 LOOP
+             SELECT RANKORDER,EMP_NAME,SALARY 
+             INTO RANKNUM,EMP.EMP_NAME,EMP.SALARY
+             FROM(SELECT  EMP_NAME, SALARY,ROW_NUMBER() OVER(ORDER BY SALARY DESC) AS RANKORDER FROM EMPLOYEE)
+             WHERE RANKORDER = i;
+             DBMS_OUTPUT.PUT_LINE('랭킹 : ' || RANKNUM || '/이름 : ' || EMP.EMP_NAME || '/급여 : ' || EMP.SALARY);
+        END LOOP;
+  
+    ELSIF(TYPE_CHR = '보너스')
+    THEN
+        FOR i IN 1..5 LOOP
+             SELECT * INTO RANKNUM, EMP.EMP_NAME, EMP.BONUS
+             FROM(SELECT ROW_NUMBER() OVER(ORDER BY NVL(BONUS*100,0) DESC) AS RANKORDER,
+             EMP_NAME, NVL(BONUS*100,0) FROM EMPLOYEE)
+             WHERE RANKORDER = i;
+             DBMS_OUTPUT.PUT_LINE('랭킹 : ' || RANKNUM || '/이름 : ' || EMP.EMP_NAME || '/보너스율 : ' || EMP.BONUS || '%');
+        END LOOP;
+ 
+    ELSIF(TYPE_CHR = '입사일')
+    THEN
+        FOR i IN 1..5 LOOP
+             SELECT RANKORDER,EMP_NAME,HIRE_DATE 
+             INTO RANKNUM,EMP.EMP_NAME,EMP.HIRE_DATE
+             FROM(SELECT  EMP_NAME, HIRE_DATE,ROW_NUMBER() OVER(ORDER BY HIRE_DATE) AS RANKORDER FROM EMPLOYEE)
+             WHERE RANKORDER = i;
+             DBMS_OUTPUT.PUT_LINE('랭킹 : ' || RANKNUM || '/이름 : ' || EMP.EMP_NAME || '/입사일 : ' || EMP.HIRE_DATE);
+        END LOOP;
+     END IF;
+END;
+/
+
+
+
+DECLARE
+	N NUMBER :=1;
+BEGIN
+	WHILE N  <=5 LOOP
+	DBMS_OUTPUT.PUT_LINE(N);
+	N:= N+1;
+END LOOP;
+END;
+/
+
+--연습용 테이블 생성
+
+CREATE TABLE EMP AS SELECT * FROM EMPLOYEE;
+
+SELECT * FROM EMP;
+
+COMMIT;
+ROLLBACK;
+
+DROP PROCEDURE EMP_ID_DEL;
+
+CREATE PROCEDURE EMP_ID_DEL(ID EMP.EMP_ID%TYPE)
+IS 
+BEGIN
+    DELETE FROM EMP WHERE EMP_ID = ID;
+END;
+/
+
+EXEC EMP_ID_DEL('&사번');
+
+DROP PROCEDURE EMP_SEARCH;
+CREATE PROCEDURE EMP_SEARCH
+            (D_CODE EMP.DEPT_CODE%TYPE :='D1',
+             J_CODE EMP.JOB_CODE%TYPE :='J6')
+IS
+    ID EMP.EMP_ID%TYPE;
+    NAME EMP.EMP_NAME%TYPE;
+BEGIN
+    SELECT EMP_ID, EMP_NAME
+    INTO ID,NAME
+    FROM EMP
+    WHERE DEPT_CODE = D_CODE AND JOB_CODE = J_CODE
+    AND ROWNUM = 1;
+    DBMS_OUTPUT.PUT_LINE('사번 : ' || ID);
+    DBMS_OUTPUT.PUT_LINE('이름 : ' || NAME);
+    
+EXCEPTION
+    WHEN NO_DATA_FOUND
+    THEN DBMS_OUTPUT.PUT_LINE('데이터가 없습니다.');
+END;
+/
+
+EXEC EMP_SEARCH('D9','J2');
+EXEC EMP_SEARCH('D8');
+EXEC EMP_SEARCH();
+
+DROP PROCEDURE EMP_SEARCH;
+
+---아래와 같이 프로시저를 실행시 해당 ID를 가진 직원의 급여가 3000000원으로
+-- 변경되도록 만들어라.
+-- 실행시 출력 결과 (실제 EMP테이블의 값도 변경됨)
+-- 송종기 사원의 급여 변경
+-- 6000000-> 3000000
+
+CREATE OR REPLACE PROCEDURE EMP_MODIFY_SALARY
+            (D_CODE EMP.DEPT_CODE%TYPE,
+             E_SAL EMP.SALARY%TYPE)
+IS
+    ID EMP.EMP_ID%TYPE;
+    SAL EMP.SALARY%TYPE;
+    NAME EMP.EMP_NAME%TYPE;
+    ORIGIN_SAL EMP.SALARY%TYPE;
+    J_NAME DEPARTMENT.DEPT_TITLE%TYPE;
+BEGIN
+    SELECT EMP_ID, E_SAL, SALARY, EMP_NAME, (SELECT JOB_NAME FROM JOB J WHERE E.JOB_CODE = J.JOB_CODE)
+    INTO ID, SAL, ORIGIN_SAL,NAME,J_NAME
+    FROM EMP E
+    WHERE E.EMP_ID = D_CODE;
+    
+    UPDATE EMP SET SALARY = SAL
+    WHERE EMP_ID = ID;
+    
+    DBMS_OUTPUT.PUT_LINE(NAME ||' '|| J_NAME ||'의 급여변경');
+    DBMS_OUTPUT.PUT_LINE(ORIGIN_SAL ||'->' || SAL);
+    
+EXCEPTION
+    WHEN NO_DATA_FOUND
+    THEN DBMS_OUTPUT.PUT_LINE('데이터가 없습니다.');
+END;
+/
+DROP PROCEDURE EMP_MODIFY_SALARY;
+
+EXEC EMP_MODIFY_SALARY('202',3000000);
+
+SELECT * FROM EMP;
+
+SELECT* FROM JOB;
+
+---- 사번을 입력받아 해당 직원의 이름을 리턴하는 함수를 제작
+
+CREATE FUNCTION R_NAME(ID EMP.EMP_ID%TYPE)
+RETURN EMP.EMP_NAME%TYPE
+IS
+    NAME EMP.EMP_NAME%TYPE;
+BEGIN
+    SELECT EMP_NAME
+    INTO NAME
+    FROM EMP
+    WHERE EMP_ID = ID;
+    RETURN NAME;
+END;
+/
+
+SELECT R_NAME('210') FROM DUAL;
+
+SELECT* FROM ALL_ERRORS;
+
+
+-- 실습문제1
+-- 사번을 입력 받아 해당 사원의 연봉을 계상하여 리턴하는 저장함수를 만들어 출력하시오
+-- PL/SQL 에서 BONUS_CALC('&사번'); 처리시 연봉을 리턴하여 출력할 수 있도록
+-- 만들어라.
+CREATE FUNCTION BONUS_CALC(ID EMP.EMP_ID%TYPE)
+RETURN EMP.SALARY%TYPE
+IS
+    Y_SALARY EMP.SALARY%TYPE;
+BEGIN
+    SELECT SALARY*12
+    INTO Y_SALARY
+    FROM EMP
+    WHERE EMP_ID = ID;
+    RETURN Y_SALARY;
+END;
+/
+
+DECLARE
+    EMP EMPLOYEE%ROWTYPE;
+BEGIN 
+    SELECT EMP_ID,EMP_NAME
+    INTO EMP.EMP_ID, EMP.EMP_NAME
+    FROM EMPLOYEE
+    WHERE EMP_ID = '&사번';
+    
+    DBMS_OUTPUT.PUT_LINE(EMP.EMP_NAME ||'의 연봉 ' || BONUS_CALC(EMP.EMP_ID)); 
+END;
+/
+-- 실습문제 2
+-- 사번을 전달받아 사원에게 특별 보너스를 지급하려고 함
+-- SALARY_BONUS('&사번','&보너스율');
+-- 보너스율은 % 단위로 입력하여 처리 될 수 있도록 만들어라 (ex. 30% 입력시 -> 0.3)
+-- PL/SQL에서 SALARY_BONUS 함수를 호출하여 값을 넘기게 되면
+-- 지급되는 보너스 값이 얼마인지 출력되도록 하시오( 급여 * 보너스율)
+
+DROP FUNCTION SALARY_BONUS;
+CREATE FUNCTION SALARY_BONUS(ID EMP.EMP_ID%TYPE, B_RATE EMP.BONUS%TYPE)
+RETURN EMP.SALARY%TYPE
+IS
+    SAL EMP.SALARY%TYPE;
+BEGIN
+    SELECT SALARY 
+    INTO SAL
+    FROM EMP
+    WHERE EMP_ID = ID;
+    
+    RETURN SAL*B_RATE*0.01;
+END;
+/
+
+DECLARE
+    ID EMPLOYEE.EMP_ID%TYPE;
+    SAL EMPLOYEE.SALARY%TYPE;
+    NAME EMPLOYEE.EMP_NAME%TYPE;
+    B_RATE EMPLOYEE.BONUS%TYPE;
+BEGIN
+    ID := '&사번';
+    B_RATE :='&특별보너스율';
+    SAL := SALARY_BONUS(ID,B_RATE);
+    SELECT EMP_NAME INTO NAME
+    FROM EMPLOYEE
+    WHERE EMP_ID = ID;
+    
+    DBMS_OUTPUT.PUT_LINE(NAME || '사원이 받는 보너스값 ' || SAL);
+END;
+/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
