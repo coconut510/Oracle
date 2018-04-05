@@ -13,7 +13,8 @@
 CREATE TABLE 테이블명(컬럼명 자료형(크기), 컬럼명 자료형(크기), ...);
 
 EX)
-CREATE TABLE MEMBER(
+CREATE TABLE MEMBER
+(
 	MEMBER_ID VARCHAR2(20),
 	MEMBER_PWD VARCHAR2(20),
 	MEMBER_NAME VARCHAR2(20)
@@ -146,7 +147,7 @@ CREATE TABLE USER_NOTCONS
 	UNIQUE ( USER_ID ) -- 마지막에 주명 테이블 레벨
 );
 
--> UNIQUE 제[약 조건이 설정되면 중복된 데이터를 넣을수없음
+-> UNIQUE 제약 조건이 설정되면 중복된 데이터를 넣을수없음
 -> 하지만 UNIQUE 제약 조건이 설정되었다 하더라도 NULL 값으로 넣게 되면
 데이터가 처리 되어 버림
 -> 해결 방법은 UNIQUE 제약 조건과 NOT NULL 제약 조건을 동시에 주는 방법
